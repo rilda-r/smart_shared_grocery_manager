@@ -140,50 +140,15 @@ if not st.session_state.splash_completed:
 
 # ----------------- PHASE 2: AUTHENTICATED USER INTERFACE -----------------
 if st.session_state.get("logged_in", False):
-    top_nav()
-    header_left, header_right = st.columns([4, 1.2])
-    
-    with header_left:
-        st.success(f"✓ Welcome back, {st.session_state.user_name}!")
-        st.info("💡 Dashboard is initialized — Login sequence verified successfully.")
-        
-    with header_right:
-        st.markdown('<div class="top-right-dock groc-danger">', unsafe_allow_html=True)
-        if st.button("🚨 Delete Account", key="top_delete_account"):
-            delete_user_account(st.session_state.user_email)
-            st.session_state.logged_in = False
-            st.session_state.pop("user_email", None)
-            st.session_state.pop("user_name", None)
-            st.success("Your account has been permanently deleted.")
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # Dashboard Panel Grids
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    panel_col1, panel_col2 = st.columns(2, gap="medium")
-    with panel_col1:
-        st.markdown(
-            """
-            <div class="groc-panel">
-                <div class="groc-feature-icon">🧾</div>
-                <h4 style="margin-top:0.5rem;">Recent group activity</h4>
-                <p class="groc-muted" style="font-size:0.9rem;">No active groups shared yet. Create a room to start tracking shared lists.</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    with panel_col2:
-        st.markdown(
-            """
-            <div class="groc-panel">
-                <div class="groc-feature-icon">📊</div>
-                <h4 style="margin-top:0.5rem;">Personal spend tracker</h4>
-                <p class="groc-muted" style="font-size:0.9rem;">Your monthly grocery expense tracking graphs will populate here natively.</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    st.stop()
+    # Bridge legacy auth keys → canonical contract keys
+    if "username" not in st.session_state and "user_name" in st.session_state:
+        st.session_state["username"] = st.session_state["user_name"]
+    if "is_authenticated" not in st.session_state:
+        st.session_state["is_authenticated"] = True
+    if "user_id" not in st.session_state:
+        st.session_state["user_id"] = 1  # Mock user_id — replaced by backend
+    # Redirect to Dashboard
+    st.switch_page("pages/06_Dashboard.py")
 
 # ----------------- PHASE 3: LIVE MAIN LOGIN LAYOUT -----------------
 top_nav()
