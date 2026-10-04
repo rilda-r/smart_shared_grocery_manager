@@ -36,8 +36,17 @@ def get_connection():
         conn.close()
 
 
+import models
+
+
 def init_db():
-    """Create the users table if it doesn't already exist, and migrate columns."""
+    """Create all application tables and migrations if they don't already exist."""
+    try:
+        from database.connection import init_schema
+        init_schema()
+    except Exception:
+        pass
+
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(

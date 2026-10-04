@@ -61,7 +61,7 @@ if not st.session_state.splash_completed:
             .splash-content { 
                 position: relative; 
                 text-align: center; 
-                color: #F6F2E9; 
+                color: #000000; 
                 width: 100%;
                 max-width: 600px;
                 margin: 0 auto;
@@ -101,10 +101,10 @@ if not st.session_state.splash_completed:
                 visibility: visible !important;
                 transform: scale(0); 
                 animation: textBounce 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 1.1s forwards; 
-                color: #F6F2E9 !important; 
+                color: #000000 !important; 
             }
             @keyframes textBounce { 
-                0% { transform: scale(0); }
+                0% { transform: scale(0); } 
                 60% { transform: scale(1.1); } 
                 100% { transform: scale(1); } 
             }
@@ -112,9 +112,9 @@ if not st.session_state.splash_completed:
                 font-family: 'Inter', sans-serif; 
                 font-size: 1.1rem; 
                 opacity: 0; 
-                margin-top: 0.5rem;
+                margin-top: 0.5rem; 
                 animation: fadeUp 0.6s ease 1.3s forwards; 
-                color: #E7EFE6 !important; 
+                color: #000000 !important; 
             }
             @keyframes fadeUp { 
                 0% { opacity: 0; transform: translateY(10px); } 

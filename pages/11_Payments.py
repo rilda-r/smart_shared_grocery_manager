@@ -150,16 +150,16 @@ def report_handler(payment_id):
     st.rerun()
 
 with tab_all:
-    render_payment_table(payments, user_id, on_settle=settle_handler, on_report=report_handler)
+    render_payment_table(payments, user_id, on_settle=settle_handler, on_report=report_handler, key_prefix="all_")
 
 with tab_owe:
     owe_list = [p for p in payments if p["payerUserId"] == user_id and p["paymentStatus"] == "pending"]
-    render_payment_table(owe_list, user_id, on_settle=settle_handler, on_report=report_handler)
+    render_payment_table(owe_list, user_id, on_settle=settle_handler, on_report=report_handler, key_prefix="owe_")
 
 with tab_receive:
     receive_list = [p for p in payments if p["payeeUserId"] == user_id and p["paymentStatus"] == "pending"]
-    render_payment_table(receive_list, user_id)
+    render_payment_table(receive_list, user_id, key_prefix="rec_")
 
 with tab_history:
     history = [p for p in payments if p["paymentStatus"] in ("settled", "reported")]
-    render_payment_table(history, user_id)
+    render_payment_table(history, user_id, key_prefix="hist_")

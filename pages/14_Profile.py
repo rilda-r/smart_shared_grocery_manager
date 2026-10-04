@@ -42,7 +42,7 @@ with left_col:
     # Avatar placeholder
     st.markdown(
         f"""
-        <div style="background:#1F4C3D; color:#F6F2E9; border-radius:50%;
+        <div style="background:#1F4C3D; color:#000000; border-radius:50%;
                     width:90px; height:90px; display:flex; align-items:center;
                     justify-content:center; font-family:'Fraunces',serif;
                     font-size:2.5rem; font-weight:700; margin-bottom:1rem;">

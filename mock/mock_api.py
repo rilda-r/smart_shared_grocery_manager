@@ -229,29 +229,41 @@ def finish_shopping(room_id: int) -> dict:
 # ─────────────────────────────────────────────────────────────
 # BILLS
 # ─────────────────────────────────────────────────────────────
-def upload_bill(room_id: int, user_id: int, file_name: str) -> dict:
-    """Mock bill upload — returns a bill record with simulated OCR."""
+def upload_bill(
+    room_id: int,
+    user_id: int,
+    file_name: str,
+    extracted_items: list = None,
+    total_amount: float = None,
+) -> dict:
+    """Upload bill — dynamically registers bill record and extracted items."""
     _init_store()
+    items = list(extracted_items) if extracted_items else []
+
+    # If total_amount not explicitly provided, calculate from items + 5% GST (2.5% CGST + 2.5% SGST)
+    if total_amount is None or total_amount <= 0:
+        subtotal = sum(float(i.get("totalPrice", 0.0)) for i in items)
+        gst = round(subtotal * 0.05, 2)
+        total_amount = round(subtotal + gst, 2) if subtotal > 0 else 0.0
+
     bill = {
         "id": _next_id(),
         "roomId": room_id,
         "uploadedBy": user_id,
         "fileName": file_name,
-        "ocrStatus": "completed",
-        "totalAmount": round(random.uniform(300, 2000), 2),
+        "ocrStatus": "completed" if items else "pending",
+        "totalAmount": round(float(total_amount), 2),
         "createdAt": "2026-10-04T22:00:00",
     }
     st.session_state["store_bills"].append(bill)
-    # Seed mock extracted items
-    mock_extracted = [
-        {"id": _next_id(), "billId": bill["id"], "itemName": "Rice",
-         "quantity": 1, "unitPrice": 120.00, "totalPrice": 120.00,
-         "matchedGroceryItemId": None, "assignedUserId": None},
-        {"id": _next_id(), "billId": bill["id"], "itemName": "Sugar",
-         "quantity": 2, "unitPrice": 45.00, "totalPrice": 90.00,
-         "matchedGroceryItemId": None, "assignedUserId": None},
-    ]
-    st.session_state["store_bill_items"].extend(mock_extracted)
+
+    # Attach billId and ensure items are properly tracked in store
+    for item in items:
+        item["billId"] = bill["id"]
+        if "id" not in item or not item["id"]:
+            item["id"] = _next_id()
+
+    st.session_state["store_bill_items"].extend(items)
     return bill
 
 

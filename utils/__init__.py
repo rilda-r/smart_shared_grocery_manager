@@ -1,1 +1,1 @@
-# utils package
+"""Backend utility package (validators, security, helpers)."""
