@@ -151,7 +151,7 @@ def init_schema() -> None:
             cur = conn.cursor()
             cur.execute(
                 f"CREATE DATABASE IF NOT EXISTS `{cfg.db_name}` "
-                "CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci"
+                "CHARACTER SET utf8mb4"
             )
             conn.commit()
             cur.close()

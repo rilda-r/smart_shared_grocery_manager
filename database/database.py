@@ -102,6 +102,17 @@ def get_user_by_email(email: str):
         return dict(row) if row else None
 
 
+def get_user_by_id(user_id: int):
+    with get_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT * FROM users WHERE id = %s", (int(user_id),)
+        )
+        row = cursor.fetchone()
+        cursor.close()
+        return dict(row) if row else None
+
+
 def set_otp(email: str, otp_code: str, expires_at: str):
     with get_connection() as conn:
         cursor = conn.cursor()

@@ -104,4 +104,16 @@ if verify_clicked:
             mark_verified(email)
             st.session_state.pop("pending_verification_email", None)
             st.session_state.pop("dev_otp_preview", None)
-            st.switch_page("pages/01_Login.py")
+
+            # Auto-authenticate user and take directly to Dashboard
+            from utils.security import create_session_token
+            st.session_state.logged_in = True
+            st.session_state.is_authenticated = True
+            st.session_state.user_id = user["id"]
+            st.session_state.user_email = user["email"]
+            st.session_state.user_name = user["full_name"]
+            st.session_state.username = user["full_name"]
+            st.session_state.last_activity = time.time()
+            st.query_params["session"] = create_session_token(user["id"])
+
+            st.switch_page("pages/06_Dashboard.py")

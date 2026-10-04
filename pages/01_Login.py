@@ -11,6 +11,8 @@ from database.database import (
     delete_user_account, lock_account, unlock_account,
 )
 from security.password_hash import verify_password
+from utils.session import sync_auth_state
+from utils.security import create_session_token
 
 st.set_page_config(page_title="Login — GrocEase", page_icon="🛒", layout="wide")
 init_db()
@@ -24,50 +26,11 @@ MAX_FAILED_ATTEMPTS = 3
 LOCKOUT_MINUTES = 10
 
 # ============================================================
-# LOGGED-IN VIEW
+# LOGGED-IN VIEW — REDIRECT TO DASHBOARD
 # ============================================================
-if st.session_state.get("logged_in", False):
-    header_left, header_right = st.columns([3, 1.4])
-
-    with header_left:
-        st.success(f"Welcome back, {st.session_state.user_name}.")
-        st.info("The dashboard isn't built yet — login succeeded.")
-
-    with header_right:
-        # MANUAL LOGOUT BUTTON
-        if st.button("Logout", key="logout_btn", use_container_width=True):
-            st.switch_page("pages/05_Logout.py")
-
-        with st.container(key="delete_account_wrap"):
-            if st.button("Delete account", key="top_delete_account", use_container_width=True):
-                delete_user_account(st.session_state.user_email)
-                st.switch_page("pages/05_Logout.py")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    panel_col1, panel_col2 = st.columns(2, gap="medium")
-    with panel_col1:
-        st.markdown(
-            """
-            <div class="groc-panel">
-                <div class="groc-feature-icon">🧾</div>
-                <h4>Recent group activity</h4>
-                <p class="groc-muted" style="font-size:0.9rem;">No active groups yet.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with panel_col2:
-        st.markdown(
-            """
-            <div class="groc-panel">
-                <div class="groc-feature-icon">📊</div>
-                <h4>Personal spend tracker</h4>
-                <p class="groc-muted" style="font-size:0.9rem;">Graphs coming soon.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    st.stop()
+sync_auth_state()
+if st.session_state.get("logged_in", False) or st.session_state.get("is_authenticated", False):
+    st.switch_page("pages/06_Dashboard.py")
 
 # ============================================================
 # LOGIN FORM
@@ -168,7 +131,13 @@ if login_clicked:
         else:
             reset_failed_login(email)
             st.session_state.logged_in = True
+            st.session_state.is_authenticated = True
+            st.session_state.user_id = user["id"]
             st.session_state.user_email = user["email"]
             st.session_state.user_name = user["full_name"]
+            st.session_state.username = user["full_name"]
             st.session_state.last_activity = time.time()
-            st.rerun()
+
+            token = create_session_token(user["id"])
+            st.query_params["session"] = token
+            st.switch_page("pages/06_Dashboard.py")

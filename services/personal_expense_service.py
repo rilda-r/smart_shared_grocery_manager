@@ -177,7 +177,7 @@ def calculate_spending_summary(user_id, start_date=None, end_date=None):
         tuple(params),
     )
     by_month = query_all(
-        f"SELECT DATE_FORMAT(expense_date, '%%Y-%%m') AS month, SUM(amount) AS total "
+        f"SELECT SUBSTRING(CAST(expense_date AS CHAR), 1, 7) AS month, SUM(amount) AS total "
         f"FROM personal_expenses WHERE {where} GROUP BY month ORDER BY month",
         tuple(params),
     )

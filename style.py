@@ -30,7 +30,36 @@ h1, h2, h3, h4 {{
     font-weight: 600 !important;
 }}
 
-#MainMenu, footer, header {{ visibility: hidden; }}
+#MainMenu, footer, .stDeployButton, [data-testid="stToolbarActions"] {{
+    visibility: hidden !important;
+}}
+header {{
+    background: transparent !important;
+}}
+header [data-testid="stToolbar"] {{
+    visibility: visible !important;
+    display: flex !important;
+}}
+[data-testid="stExpandSidebarButton"], [data-testid="stSidebarCollapsedControl"] {{
+    visibility: visible !important;
+    display: flex !important;
+    z-index: 99999 !important;
+}}
+[data-testid="stExpandSidebarButton"] button, [data-testid="stSidebarCollapsedControl"] button {{
+    color: {FOREST} !important;
+    background-color: {SAGE} !important;
+    border: 1px solid {LINE_GREEN} !important;
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+}}
+[data-testid="stExpandSidebarButton"] button:hover, [data-testid="stSidebarCollapsedControl"] button:hover {{
+    background-color: {LINE_GREEN} !important;
+}}
+[data-testid="stExpandSidebarButton"] svg, [data-testid="stSidebarCollapsedControl"] svg {{
+    fill: {FOREST} !important;
+    stroke: {FOREST} !important;
+}}
+
 .block-container {{ padding-top: 2rem; max-width: 1120px; }}
 
 /* All Streamlit buttons = black */

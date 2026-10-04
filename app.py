@@ -22,6 +22,8 @@ from database.database import (
     delete_user_account,
 )
 from security.password_hash import verify_password
+from utils.session import sync_auth_state
+from utils.security import create_session_token
 
 st.set_page_config(
     page_title="Login — GrocEase",
@@ -33,7 +35,13 @@ st.set_page_config(
 init_db()
 apply_base_style()
 
-# Hide Streamlit's default multipage sidebar navigation panel
+# Auto-recover session on page reload/navigation
+sync_auth_state()
+if st.session_state.get("logged_in", False) or st.session_state.get("is_authenticated", False):
+    st.session_state.splash_completed = True
+    st.switch_page("pages/06_Dashboard.py")
+
+# Hide Streamlit's default multipage sidebar navigation panel on login
 st.markdown(
     "<style>[data-testid='stSidebarNav'] {display: none;}</style>",
     unsafe_allow_html=True,
@@ -228,6 +236,13 @@ if login_clicked:
         else:
             reset_failed_login(email)
             st.session_state.logged_in = True
+            st.session_state.is_authenticated = True
+            st.session_state.user_id = user["id"]
             st.session_state.user_email = user["email"]
             st.session_state.user_name = user["full_name"]
-            st.rerun()
+            st.session_state.username = user["full_name"]
+            st.session_state.last_activity = time.time()
+
+            token = create_session_token(user["id"])
+            st.query_params["session"] = token
+            st.switch_page("pages/06_Dashboard.py")
