@@ -108,3 +108,29 @@ def month_bounds(year: int, month: int):
     start = date(year, month, 1)
     end = date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)
     return start, end
+
+
+def check_upload_size(file_bytes: bytes, max_bytes: int = None) -> bool:
+    """Security check ensuring uploaded payload does not exceed memory limit."""
+    if not isinstance(file_bytes, (bytes, bytearray)):
+        return False
+    from config.settings import get_settings
+    limit = max_bytes or get_settings().max_upload_bytes
+    return 0 < len(file_bytes) <= limit
+
+
+def format_iso(dt: datetime = None) -> str:
+    """Format a datetime to standard ISO 8601 string."""
+    target = dt or utcnow()
+    return target.isoformat()
+
+
+def parse_iso(iso_str: str) -> datetime:
+    """Safely parse an ISO 8601 string into a datetime object."""
+    if not iso_str or not isinstance(iso_str, str):
+        return None
+    try:
+        return datetime.fromisoformat(iso_str.strip())
+    except (ValueError, TypeError):
+        return None
+
