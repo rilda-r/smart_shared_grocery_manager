@@ -50,6 +50,35 @@ def _init_store():
         st.session_state["store_personal_expenses"] = copy.deepcopy(MOCK_PERSONAL_EXPENSES)
     if "store_budgets" not in st.session_state:
         st.session_state["store_budgets"] = copy.deepcopy(MOCK_BUDGETS)
+    if "store_budget_history" not in st.session_state:
+        st.session_state["store_budget_history"] = [
+            {
+                "id": 1,
+                "userId": 1,
+                "monthYear": "2026-09",
+                "totalBudget": 5000.0,
+                "totalSpent": 3850.0,
+                "totalSaved": 1150.0,
+                "categoryBreakdown": {
+                    "Groceries": {"limit": 3000.0, "spent": 2400.0, "saved": 600.0},
+                    "Dining Out": {"limit": 2000.0, "spent": 1450.0, "saved": 550.0},
+                },
+                "createdAt": "2026-09-30T23:59:59",
+            },
+            {
+                "id": 2,
+                "userId": 1,
+                "monthYear": "2026-08",
+                "totalBudget": 4500.0,
+                "totalSpent": 4100.0,
+                "totalSaved": 400.0,
+                "categoryBreakdown": {
+                    "Groceries": {"limit": 2500.0, "spent": 2450.0, "saved": 50.0},
+                    "Dining Out": {"limit": 2000.0, "spent": 1650.0, "saved": 350.0},
+                },
+                "createdAt": "2026-08-31T23:59:59",
+            },
+        ]
     if "store_next_id" not in st.session_state:
         st.session_state["store_next_id"] = 9000
 
@@ -165,6 +194,7 @@ def add_grocery_item(room_id: int, user_id: int, item_name: str, quantity: int) 
         "userId": user_id,
         "itemName": item_name.strip(),
         "quantity": quantity,
+        "purchasedQuantity": 0,
         "status": "pending",
         "createdAt": "2026-10-04T22:00:00",
         "updatedAt": "2026-10-04T22:00:00",
@@ -173,10 +203,22 @@ def add_grocery_item(room_id: int, user_id: int, item_name: str, quantity: int) 
     return item
 
 
+def increment_grocery_item_quantity(item_id: int, add_qty: int) -> bool:
+    _init_store()
+    for item in st.session_state["store_grocery_items"]:
+        if item["id"] == item_id:
+            item["quantity"] = item.get("quantity", 1) + int(add_qty)
+            item["updatedAt"] = "2026-10-04T22:00:00"
+            return True
+    return False
+
+
 def update_grocery_item(item_id: int, item_name: str, quantity: int) -> bool:
     _init_store()
     for item in st.session_state["store_grocery_items"]:
         if item["id"] == item_id:
+            if item.get("status") == "purchased":
+                return False  # Protected
             item["itemName"] = item_name.strip()
             item["quantity"] = quantity
             item["updatedAt"] = "2026-10-04T22:00:00"
@@ -188,7 +230,8 @@ def delete_grocery_item(item_id: int) -> bool:
     _init_store()
     before = len(st.session_state["store_grocery_items"])
     st.session_state["store_grocery_items"] = [
-        i for i in st.session_state["store_grocery_items"] if i["id"] != item_id
+        i for i in st.session_state["store_grocery_items"]
+        if not (i["id"] == item_id and i.get("status") != "purchased")
     ]
     return len(st.session_state["store_grocery_items"]) < before
 
@@ -202,12 +245,14 @@ def start_shopping(room_id: int) -> bool:
     return True
 
 
-def update_grocery_item_status(item_id: int, status: str) -> bool:
-    """Update the status of a grocery item (pending/purchased/unavailable)."""
+def update_grocery_item_status(item_id: int, status: str, increment: int = 1) -> bool:
+    """Update the status of a grocery item (pending/purchased/unavailable) and linearly increment purchase quantity."""
     _init_store()
     for item in st.session_state["store_grocery_items"]:
         if item["id"] == item_id:
             item["status"] = status
+            if status == "purchased":
+                item["purchasedQuantity"] = item.get("purchasedQuantity", 0) + increment
             item["updatedAt"] = "2026-10-04T22:00:00"
             return True
     return False
@@ -430,3 +475,61 @@ def delete_budget(budget_id: int) -> bool:
         b for b in st.session_state["store_budgets"] if b["id"] != budget_id
     ]
     return len(st.session_state["store_budgets"]) < before
+
+
+# ─────────────────────────────────────────────────────────────
+# BUDGET HISTORY & ARCHIVING
+# ─────────────────────────────────────────────────────────────
+def get_monthly_budget_history(user_id: int) -> list:
+    """Return past months budget history list."""
+    _init_store()
+    return [
+        h for h in st.session_state.get("store_budget_history", [])
+        if h.get("userId") == user_id
+    ]
+
+
+def save_monthly_budget_history(
+    user_id: int,
+    month_year: str,
+    total_budget: float,
+    total_spent: float,
+    total_saved: float,
+    category_breakdown: dict = None,
+) -> bool:
+    """Save or update month-end budget summary in mock history."""
+    _init_store()
+    if "store_budget_history" not in st.session_state:
+        st.session_state["store_budget_history"] = []
+    hist_list = st.session_state["store_budget_history"]
+    existing = next((h for h in hist_list if h.get("monthYear") == month_year and h.get("userId") == user_id), None)
+    if existing:
+        existing.update({
+            "totalBudget": float(total_budget),
+            "totalSpent": float(total_spent),
+            "totalSaved": float(total_saved),
+            "categoryBreakdown": category_breakdown or {},
+            "createdAt": "2026-10-04T22:00:00",
+        })
+    else:
+        hist_list.insert(0, {
+            "id": len(hist_list) + 1,
+            "userId": user_id,
+            "monthYear": month_year,
+            "totalBudget": float(total_budget),
+            "totalSpent": float(total_spent),
+            "totalSaved": float(total_saved),
+            "categoryBreakdown": category_breakdown or {},
+            "createdAt": "2026-10-04T22:00:00",
+        })
+    return True
+
+
+def reset_active_monthly_data(user_id: int) -> bool:
+    """Clear active personal expenses for new month."""
+    _init_store()
+    st.session_state["store_personal_expenses"] = [
+        e for e in st.session_state["store_personal_expenses"]
+        if e.get("userId") != user_id
+    ]
+    return True

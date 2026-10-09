@@ -21,10 +21,10 @@ from components.cards import render_metric_card, render_empty_state
 from components.expense_table import render_expense_table
 from components.forms import render_add_expense_form
 from components.charts import render_category_pie_chart, render_monthly_bar_chart
-from mock.mock_api import (
-    get_personal_expenses,
-    add_personal_expense,
-    delete_personal_expense,
+from services.personal_expense_service import (
+    get_personal_expenses as svc_get_personal_expenses,
+    add_personal_expense as svc_add_personal_expense,
+    delete_personal_expense as svc_delete_personal_expense,
 )
 from mock.mock_data import EXPENSE_CATEGORIES
 
@@ -49,23 +49,44 @@ st.markdown(
 )
 st.markdown("<hr style='border-color:#D8D0BE; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
 
+
+def fetch_expenses(uid: int) -> list:
+    res = svc_get_personal_expenses(uid)
+    if res and res.get("success"):
+        return [
+            {
+                "id": e["id"],
+                "userId": e.get("user_id", uid),
+                "amount": float(e["amount"]),
+                "category": e["category"],
+                "expenseDate": str(e.get("expense_date") or ""),
+                "description": e.get("description") or "",
+            }
+            for e in res.get("data", [])
+        ]
+    return []
+
+
 # ── Add expense form ──────────────────────────────────────────────────────────
 new_expense = render_add_expense_form(key_prefix="pe_")
 if new_expense:
-    add_personal_expense(
+    res = svc_add_personal_expense(
         user_id,
         new_expense["amount"],
         new_expense["category"],
         new_expense["expenseDate"],
-        new_expense["description"],
+        new_expense.get("description") or None,
     )
-    st.success(f"✅ Added expense: {format_currency(new_expense['amount'])} — {new_expense['category']}")
-    st.rerun()
+    if res and res.get("success"):
+        st.success(f"✅ Added expense: {format_currency(new_expense['amount'])} — {new_expense['category']}")
+        st.rerun()
+    else:
+        st.error(res.get("message") if res else "Could not save expense.")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Fetch expenses ────────────────────────────────────────────────────────────
-all_expenses = get_personal_expenses(user_id)
+all_expenses = fetch_expenses(user_id)
 
 # ── Summary metrics ───────────────────────────────────────────────────────────
 total_spent = sum(e["amount"] for e in all_expenses)
@@ -124,7 +145,7 @@ filtered = [
 
 # ── Expense table + delete ────────────────────────────────────────────────────
 def handle_delete(expense_id):
-    delete_personal_expense(expense_id)
+    svc_delete_personal_expense(user_id, expense_id)
     st.success("Expense deleted.")
     st.rerun()
 

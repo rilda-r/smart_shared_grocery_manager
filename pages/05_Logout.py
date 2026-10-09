@@ -3,18 +3,25 @@ import sys, os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from style import apply_base_style, top_nav
 from utils.session import logout_user
 
-st.set_page_config(page_title="Logout — GrocEase", page_icon="🛒", layout="centered")
+# Cleanly revoke session token and clear auth state immediately
+logout_user()
+
+from style import apply_base_style, top_nav, hide_sidebar
+
+st.set_page_config(
+    page_title="Logout — GrocEase",
+    page_icon="🛒",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+)
 apply_base_style()
+hide_sidebar()
 top_nav()
 
 # Check if redirected here due to timeout
 session_expired = st.session_state.pop("session_expired", False)
-
-# Cleanly revoke session token and clear state
-logout_user()
 
 st.markdown(
     """

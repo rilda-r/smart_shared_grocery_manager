@@ -5,7 +5,7 @@ from datetime import datetime
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from style import apply_base_style, top_nav
+from style import apply_base_style, top_nav, hide_sidebar
 from session_manager import check_session_timeout
 from database.database import (
     init_db, get_user_by_email, set_otp, clear_otp, update_password,
@@ -17,11 +17,18 @@ from security.authentication import (
     OTP_RESEND_COOLDOWN_SECONDS,
 )
 
-st.set_page_config(page_title="Reset Password — GrocEase", page_icon="🛒", layout="centered")
+st.set_page_config(
+    page_title="Reset Password — GrocEase",
+    page_icon="🛒",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+)
 init_db()
 apply_base_style()
+hide_sidebar()
 top_nav()
 check_session_timeout()
+
 
 # Initialize flow state keys safely
 if "fp_step" not in st.session_state:

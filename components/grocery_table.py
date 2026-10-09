@@ -47,21 +47,29 @@ def render_grocery_table(
         cols = st.columns([3, 1, 2, 2, 1, 1])
         cols[0].write(item["itemName"])
         cols[1].write(str(item["quantity"]))
-        cols[2].write(get_username(item["userId"]))
+        
+        # Display nickname / username attribution
+        added_by_display = item.get("addedByName") or item.get("added_by_name") or get_username(item["userId"])
+        cols[2].write(added_by_display)
         cols[3].markdown(badge_html(item["status"]), unsafe_allow_html=True)
 
         is_owner = item["userId"] == current_user_id
+        is_purchased = item.get("status") == "purchased"
 
         with cols[4]:
-            if is_owner and on_edit:
+            if is_purchased:
+                st.markdown("<span title='Purchased items cannot be edited' style='color:#8C9588; font-size:0.95rem; cursor:not-allowed;'>🔒</span>", unsafe_allow_html=True)
+            elif is_owner and on_edit:
                 if st.button("✏️", key=f"edit_item_{item['id']}"):
                     on_edit(item)
-            elif not is_owner:
+            else:
                 st.markdown("—")
 
         with cols[5]:
-            if is_owner and on_delete:
+            if is_purchased:
+                st.markdown("<span title='Purchased items cannot be deleted to protect purchase logs' style='color:#8C9588; font-size:0.95rem; cursor:not-allowed;'>🔒</span>", unsafe_allow_html=True)
+            elif is_owner and on_delete:
                 if st.button("🗑️", key=f"del_item_{item['id']}"):
                     on_delete(item["id"])
-            elif not is_owner:
+            else:
                 st.markdown("—")

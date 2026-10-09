@@ -3,9 +3,15 @@ import sys, os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from style import apply_base_style, top_nav
+from style import apply_base_style, top_nav, hide_sidebar
 from session_manager import check_session_timeout
-from database.database import init_db, create_user, get_user_by_email, set_otp
+from database.database import (
+    init_db,
+    create_user,
+    get_user_by_email,
+    set_otp,
+    update_unverified_user,
+)
 from security.password_hash import hash_password, password_strength
 from security.authentication import (
     generate_otp,
@@ -14,9 +20,15 @@ from security.authentication import (
     send_otp_email,
 )
 
-st.set_page_config(page_title="Create Account — GrocEase", page_icon="🛒", layout="centered")
+st.set_page_config(
+    page_title="Create Account — GrocEase",
+    page_icon="🛒",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+)
 init_db()
 apply_base_style()
+hide_sidebar()
 top_nav()
 check_session_timeout()
 
@@ -39,38 +51,30 @@ with mid:
     
     full_name = st.text_input("Full Name", placeholder="e.g. Ananya Rao")
     email = st.text_input("Email Address", placeholder="you@example.com")
+    st.markdown(
+        '<p style="font-size:0.83rem; color:#A97A1F; margin-top:-0.4rem; margin-bottom:1rem; font-weight:500;">'
+        '⚠️ Email address cannot be changed after account creation.'
+        '</p>',
+        unsafe_allow_html=True,
+    )
 
-    # Fixed Column Grid Alignment for Password
-    show_pw = st.session_state.get("show_pw", False)
-    pw_col, pw_toggle = st.columns([5, 1], gap="small")
-    with pw_col:
-        password = st.text_input(
-            "Password",
-            type="default" if show_pw else "password",
-            placeholder="Create a strong password",
-            key="reg_password_input",
-        )
-    with pw_toggle:
-        st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
-        if st.button("👁️" if not show_pw else "🙈", key="toggle_pw", use_container_width=True):
-            st.session_state.show_pw = not show_pw
-            st.rerun()
+    # Standardized Password and Confirm Password fields (redundant dual-eye buttons removed)
+    show_passwords = st.checkbox("Show passwords", key="reg_show_passwords")
+    pw_type = "default" if show_passwords else "password"
 
-    # Fixed Column Grid Alignment for Confirm Password
-    show_cpw = st.session_state.get("show_cpw", False)
-    cpw_col, cpw_toggle = st.columns([5, 1], gap="small")
-    with cpw_col:
-        confirm_password = st.text_input(
-            "Confirm Password",
-            type="default" if show_cpw else "password",
-            placeholder="Re-enter your password",
-            key="reg_confirm_password_input",
-        )
-    with cpw_toggle:
-        st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
-        if st.button("👁️" if not show_cpw else "🙈", key="toggle_cpw", use_container_width=True):
-            st.session_state.show_cpw = not show_cpw
-            st.rerun()
+    password = st.text_input(
+        "Password",
+        type=pw_type,
+        placeholder="Create a strong password",
+        key="reg_password_input",
+    )
+
+    confirm_password = st.text_input(
+        "Confirm Password",
+        type=pw_type,
+        placeholder="Re-enter your password",
+        key="reg_confirm_password_input",
+    )
 
     # Live password strength indicator
     if password:
@@ -119,15 +123,21 @@ if create_clicked:
         errors.append("Your password doesn't meet all the requirements above.")
     if password != confirm_password:
         errors.append("Passwords don't match.")
-    if email.strip() and get_user_by_email(clean_email):
-        errors.append("An account with this email already exists.")
+    existing = get_user_by_email(clean_email) if clean_email else None
+    if existing and existing.get("is_verified"):
+        errors.append("An account with this email already exists. Please log in instead.")
 
     if errors:
         for e in errors:
             st.error(e)
     else:
         hashed = hash_password(password)
-        created = create_user(full_name, clean_email, hashed)
+        if existing and not existing.get("is_verified"):
+            update_unverified_user(full_name, clean_email, hashed)
+            created = True
+        else:
+            created = create_user(full_name, clean_email, hashed)
+
         if not created:
             st.error("An account with this email already exists.")
         else:

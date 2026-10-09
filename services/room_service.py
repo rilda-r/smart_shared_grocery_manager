@@ -134,8 +134,11 @@ def get_room_members(user_id, room_id):
     """Members of a room (RoomMember fields plus ``username`` for display)."""
     require_room_member(room_id, user_id)
     rows = query_all(
-        "SELECT m.room_id, m.user_id, m.role, m.joined_at, u.username "
-        "FROM room_members m JOIN users u ON u.id = m.user_id "
+        "SELECT m.room_id, m.user_id, m.role, m.joined_at, "
+        "COALESCE(NULLIF(p.nickname, ''), NULLIF(u.nickname, ''), NULLIF(u.username, ''), NULLIF(u.full_name, ''), 'Member') AS username "
+        "FROM room_members m "
+        "JOIN users u ON u.id = m.user_id "
+        "LEFT JOIN profiles p ON p.user_id = u.id "
         "WHERE m.room_id = %s ORDER BY m.joined_at, m.user_id",
         (room_id,),
     )

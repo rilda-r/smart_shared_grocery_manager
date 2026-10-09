@@ -12,6 +12,9 @@ class User:
     email: str
     password_hash: str
     created_at: Optional[datetime]
+    full_name: Optional[str] = None
+    nickname: Optional[str] = None
+
 
     @classmethod
     def from_row(cls, row: dict) -> "User":

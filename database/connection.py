@@ -1,65 +1,82 @@
 """
 database/connection.py
 
-MySQL access layer for the GrocEase backend (parameterized SQL only).
+Supabase PostgreSQL access layer for the GrocEase backend (parameterized SQL only).
 
-Raw driver errors are wrapped in ``DatabaseError`` so they never reach callers
-of the service layer. ``legacy`` account code in ``database/database.py`` is
-untouched.
+Uses psycopg2 with RealDictCursor. Raw driver errors are wrapped in ``DatabaseError``
+so they never reach callers of the service layer.
 """
 
 import logging
+import os
 from contextlib import contextmanager
 from pathlib import Path
 
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 from config.settings import get_settings
 
 logger = logging.getLogger("grocease.db")
 
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
+PG_UNIQUE_VIOLATION = "23505"
 ER_DUP_ENTRY = 1062
 
 
 class DatabaseError(Exception):
-    """Wraps any MySQL driver failure. ``errno`` mirrors the driver errno."""
+    """Wraps database driver failures. ``errno`` and ``pgcode`` mirror driver codes."""
 
-    def __init__(self, message: str = "Database error", errno=None):
+    def __init__(self, message: str = "Database error", errno=None, pgcode=None):
         super().__init__(message)
         self.errno = errno
+        self.pgcode = pgcode
 
     @property
     def is_duplicate(self) -> bool:
-        return self.errno == ER_DUP_ENTRY
+        return self.errno == ER_DUP_ENTRY or self.pgcode == PG_UNIQUE_VIOLATION
 
 
-def _connect(with_database: bool = True):
+def _connect():
     cfg = get_settings()
+
+    # If full connection URL / DSN is provided (Supabase pooler or direct connection)
+    if cfg.db_url:
+        return psycopg2.connect(cfg.db_url, cursor_factory=RealDictCursor)
+
     params = dict(
         host=cfg.db_host,
         port=cfg.db_port,
         user=cfg.db_user,
         password=cfg.db_password,
-        connection_timeout=10,
+        dbname=cfg.db_name,
+        connect_timeout=10,
+        cursor_factory=RealDictCursor,
     )
-    if with_database:
-        params["database"] = cfg.db_name
-    return mysql.connector.connect(**params)
+
+    sslmode = os.environ.get("GROCEASE_DB_SSLMODE") or cfg.db_sslmode
+    if sslmode:
+        params["sslmode"] = sslmode
+    elif cfg.db_host not in ("localhost", "127.0.0.1", ""):
+        # Default to requiring SSL for cloud-hosted Supabase
+        params["sslmode"] = "require"
+
+    return psycopg2.connect(**params)
 
 
 @contextmanager
 def get_connection(with_database: bool = True):
     try:
-        conn = _connect(with_database)
-    except mysql.connector.Error as err:
-        raise DatabaseError("Unable to connect", getattr(err, "errno", None)) from err
+        conn = _connect()
+    except psycopg2.Error as err:
+        pgcode = getattr(err, "pgcode", None)
+        raise DatabaseError("Unable to connect to database: " + str(err), pgcode=pgcode) from err
     try:
         yield conn
     finally:
         try:
             conn.close()
-        except mysql.connector.Error:
+        except Exception:
             pass
 
 
@@ -67,27 +84,33 @@ def get_connection(with_database: bool = True):
 def get_cursor():
     """Transactional dict-cursor: commit on success, rollback on any error."""
     with get_connection() as conn:
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         try:
             yield cursor
             conn.commit()
-        except mysql.connector.Error as err:
+        except psycopg2.Error as err:
             conn.rollback()
-            raise DatabaseError(str(err.__class__.__name__), getattr(err, "errno", None)) from err
+            pgcode = getattr(err, "pgcode", None)
+            raise DatabaseError(str(err), pgcode=pgcode) from err
         except Exception:
             conn.rollback()
             raise
         finally:
-            cursor.close()
+            try:
+                cursor.close()
+            except Exception:
+                pass
 
 
 def query_all(sql: str, params=(), cursor=None) -> list:
     if cursor is not None:
         cursor.execute(sql, params)
-        return cursor.fetchall()
+        rows = cursor.fetchall()
+        return [dict(r) if hasattr(r, "keys") else r for r in rows]
     with get_cursor() as cur:
         cur.execute(sql, params)
-        return cur.fetchall()
+        rows = cur.fetchall()
+        return [dict(r) if hasattr(r, "keys") else r for r in rows]
 
 
 def query_one(sql: str, params=(), cursor=None):
@@ -96,20 +119,57 @@ def query_one(sql: str, params=(), cursor=None):
 
 
 def execute(sql: str, params=(), cursor=None) -> int:
-    """Run a write statement; returns lastrowid (0 if none)."""
+    """Run a write statement; returns lastrowid/generated id (0 if none)."""
+    sql_stripped = sql.strip()
+    is_insert = sql_stripped.upper().startswith("INSERT")
+    has_returning = "RETURNING" in sql_stripped.upper()
+
+    final_sql = sql
+    expect_returning = has_returning
+    if is_insert and not has_returning:
+        parts = sql_stripped.split()
+        table_name = ""
+        for i, p in enumerate(parts):
+            if p.upper() == "INTO" and i + 1 < len(parts):
+                table_name = parts[i + 1].strip('"`()').lower()
+                break
+        if table_name in ("room_members", "profiles"):
+            final_sql = sql_stripped
+            expect_returning = False
+        else:
+            final_sql = f"{sql_stripped} RETURNING id"
+            expect_returning = True
+
     if cursor is not None:
-        cursor.execute(sql, params)
-        return cursor.lastrowid
+        cursor.execute(final_sql, params)
+        if expect_returning:
+            try:
+                row = cursor.fetchone()
+                if row:
+                    return row["id"] if isinstance(row, dict) and "id" in row else (row[0] if row else 0)
+            except Exception:
+                return 0
+        return cursor.rowcount or 0
+
     with get_cursor() as cur:
-        cur.execute(sql, params)
-        return cur.lastrowid
+        cur.execute(final_sql, params)
+        if expect_returning:
+            try:
+                row = cur.fetchone()
+                if row:
+                    return row["id"] if isinstance(row, dict) and "id" in row else (row[0] if row else 0)
+            except Exception:
+                return 0
+        return cur.rowcount or 0
 
 
 def database_available() -> bool:
     try:
         with get_connection() as conn:
-            return conn.is_connected()
-    except DatabaseError:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+                return True
+    except Exception:
         return False
 
 
@@ -119,46 +179,55 @@ def _split_statements(script: str) -> list:
 
 
 def _migrate_users_table(cursor) -> None:
-    """Bring a pre-existing (legacy) ``users`` table in line with the contract."""
-    cursor.execute("SHOW COLUMNS FROM users")
-    columns = {row["Field"]: row for row in cursor.fetchall()}
-    if "username" not in columns:
-        cursor.execute("ALTER TABLE users ADD COLUMN username VARCHAR(50) NULL")
-        cursor.execute("ALTER TABLE users ADD UNIQUE KEY uq_users_username (username)")
-    if "full_name" in columns and columns["full_name"]["Null"] == "NO":
-        cursor.execute("ALTER TABLE users MODIFY full_name VARCHAR(255) NULL")
-    for col, ddl in (
-        ("failed_login_attempts", "INT NOT NULL DEFAULT 0"),
-        ("locked_until", "VARCHAR(64) NULL"),
-    ):
-        if col not in columns:
-            cursor.execute(f"ALTER TABLE users ADD COLUMN {col} {ddl}")
-    created = str(columns.get("created_at", {}).get("Type", "")).lower()
-    if created.startswith("varchar"):
+    """Idempotently bring users table in line with current contract."""
+    migrations = [
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(50) NULL",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR(255) NULL",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN NOT NULL DEFAULT FALSE",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_code VARCHAR(6) NULL",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expires_at VARCHAR(64) NULL",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_last_sent_at VARCHAR(64) NULL",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INT NOT NULL DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until VARCHAR(64) NULL",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS nickname VARCHAR(50) NULL",
+        """CREATE TABLE IF NOT EXISTS profiles (
+            user_id INT PRIMARY KEY,
+            full_name VARCHAR(255) NOT NULL,
+            nickname VARCHAR(50) NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT fk_profiles_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        )""",
+        "ALTER TABLE grocery_items ADD COLUMN IF NOT EXISTS purchased_quantity INT NOT NULL DEFAULT 0",
+        """CREATE TABLE IF NOT EXISTS monthly_budget_history (
+            id SERIAL PRIMARY KEY,
+            user_id INT NOT NULL,
+            month_year VARCHAR(7) NOT NULL,
+            total_budget DECIMAL(10,2) NOT NULL,
+            total_spent DECIMAL(10,2) NOT NULL,
+            total_saved DECIMAL(10,2) NOT NULL,
+            category_breakdown JSONB NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT uq_user_month_history UNIQUE (user_id, month_year),
+            CONSTRAINT fk_budget_hist_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        )""",
+        "CREATE INDEX IF NOT EXISTS idx_budget_hist_user ON monthly_budget_history (user_id)",
+    ]
+
+    for m in migrations:
         try:
-            cursor.execute(
-                "ALTER TABLE users MODIFY created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
-            )
-        except mysql.connector.Error:
-            logger.warning("Could not convert users.created_at to DATETIME")
+            cursor.execute(m)
+        except Exception as exc:
+            logger.warning(f"Migration step ignored: {exc}")
 
 
 def init_schema() -> None:
-    """Create the database (if permitted) and apply ``schema.sql`` idempotently."""
-    cfg = get_settings()
-    try:
-        with get_connection(with_database=False) as conn:
-            cur = conn.cursor()
-            cur.execute(
-                f"CREATE DATABASE IF NOT EXISTS `{cfg.db_name}` "
-                "CHARACTER SET utf8mb4"
-            )
-            conn.commit()
-            cur.close()
-        statements = _split_statements(SCHEMA_PATH.read_text(encoding="utf-8"))
-        with get_cursor() as cur:
-            for statement in statements:
+    """Apply ``schema.sql`` idempotently on Supabase PostgreSQL."""
+    statements = _split_statements(SCHEMA_PATH.read_text(encoding="utf-8"))
+    with get_cursor() as cur:
+        for statement in statements:
+            try:
                 cur.execute(statement)
-            _migrate_users_table(cur)
-    except mysql.connector.Error as err:
-        raise DatabaseError("Schema initialisation failed", getattr(err, "errno", None)) from err
+            except Exception as e:
+                logger.warning(f"Schema statement warning: {e}")
+        _migrate_users_table(cur)

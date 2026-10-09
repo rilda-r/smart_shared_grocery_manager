@@ -155,3 +155,66 @@ def render_budget_utilization_chart(budgets: list, spending_by_category: dict):
     plt.tight_layout()
     st.pyplot(fig)
     plt.close(fig)
+
+
+def render_monthly_history_chart(history_records: list):
+    """
+    Grouped bar chart showing Budget vs Spent vs Saved across past months.
+    """
+    if not history_records:
+        st.info("No historical budget archives found yet.")
+        return
+
+    import numpy as np
+    records = sorted(history_records, key=lambda r: r.get("monthYear", ""))
+    months = [r.get("monthYear", "") for r in records]
+    budgets = [float(r.get("totalBudget", 0)) for r in records]
+    spents = [float(r.get("totalSpent", 0)) for r in records]
+    saveds = [float(r.get("totalSaved", 0)) for r in records]
+
+    x = np.arange(len(months))
+    width = 0.25
+
+    fig, ax = _base_fig(figsize=(7, 3.8))
+    ax.bar(x - width, budgets, width, label="Budget", color=GOLD, edgecolor=PAPER)
+    ax.bar(x, spents, width, label="Spent", color=RUST, edgecolor=PAPER)
+    ax.bar(x + width, saveds, width, label="Saved", color=FOREST, edgecolor=PAPER)
+
+    ax.set_ylabel("Amount (₹)", fontsize=9, color=INK_MUT)
+    ax.set_title("Historical Budget vs. Spent vs. Saved", fontsize=11, color=FOREST, fontweight="bold")
+    ax.set_xticks(x)
+    ax.set_xticklabels(months, fontsize=9)
+    ax.legend(fontsize=8, framealpha=0)
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close(fig)
+
+
+def render_month_end_summary_chart(category_breakdown: dict):
+    """
+    Horizontal grouped bar chart showing category breakdown of Used vs. Saved.
+    """
+    if not category_breakdown:
+        return
+
+    import numpy as np
+    categories = list(category_breakdown.keys())
+    spent_vals = [float(category_breakdown[c].get("spent", 0.0)) for c in categories]
+    saved_vals = [float(max(category_breakdown[c].get("saved", 0.0), 0.0)) for c in categories]
+
+    y = np.arange(len(categories))
+    height = 0.35
+
+    fig, ax = _base_fig(figsize=(6.5, max(2.8, len(categories) * 0.75)))
+    ax.barh(y - height/2, spent_vals, height, label="Used (Spent)", color=RUST, edgecolor=PAPER)
+    ax.barh(y + height/2, saved_vals, height, label="Saved", color=FOREST, edgecolor=PAPER)
+
+    ax.set_yticks(y)
+    ax.set_yticklabels(categories, fontsize=9)
+    ax.set_xlabel("Amount (₹)", fontsize=9, color=INK_MUT)
+    ax.set_title("Month-End Breakdown: Used vs. Saved", fontsize=11, color=FOREST, fontweight="bold")
+    ax.legend(fontsize=8, framealpha=0, loc="lower right")
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close(fig)
+

@@ -40,25 +40,10 @@ header [data-testid="stToolbar"] {{
     visibility: visible !important;
     display: flex !important;
 }}
-[data-testid="stExpandSidebarButton"], [data-testid="stSidebarCollapsedControl"] {{
-    visibility: visible !important;
-    display: flex !important;
-    z-index: 99999 !important;
+[data-testid="stSidebarNav"] {{
+    display: none !important;
 }}
-[data-testid="stExpandSidebarButton"] button, [data-testid="stSidebarCollapsedControl"] button {{
-    color: {FOREST} !important;
-    background-color: {SAGE} !important;
-    border: 1px solid {LINE_GREEN} !important;
-    border-radius: 6px !important;
-    padding: 4px 8px !important;
-}}
-[data-testid="stExpandSidebarButton"] button:hover, [data-testid="stSidebarCollapsedControl"] button:hover {{
-    background-color: {LINE_GREEN} !important;
-}}
-[data-testid="stExpandSidebarButton"] svg, [data-testid="stSidebarCollapsedControl"] svg {{
-    fill: {FOREST} !important;
-    stroke: {FOREST} !important;
-}}
+
 
 .block-container {{ padding-top: 2rem; max-width: 1120px; }}
 
@@ -285,18 +270,91 @@ header [data-testid="stToolbar"] {{
 </style>
 """
 
+HIDE_SIDEBAR_CSS = """
+<style>
+/* Completely hide the left navigation panel before login, on register, and on logout */
+[data-testid="stSidebar"],
+section[data-testid="stSidebar"],
+[data-testid="stSidebarNav"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stExpandSidebarButton"],
+[data-testid="collapsedControl"] {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    pointer-events: none !important;
+}
+header [data-testid="stSidebarCollapsedControl"],
+header [data-testid="stExpandSidebarButton"] {
+    display: none !important;
+    visibility: hidden !important;
+}
+</style>
+"""
+
+
+def hide_sidebar():
+    """Unconditionally hide sidebar on guest / auth screens."""
+    st.markdown(HIDE_SIDEBAR_CSS, unsafe_allow_html=True)
+
+
 def apply_base_style():
     st.markdown(BASE_CSS, unsafe_allow_html=True)
+    is_auth = bool(st.session_state.get("logged_in") or st.session_state.get("is_authenticated"))
+    if not is_auth:
+        hide_sidebar()
+
+
+def render_dev_mode_banner():
+    """Render a clear, tiny notification banner when live emails are disabled in local dev mode."""
+    from security.authentication import smtp_is_configured
+    if not smtp_is_configured():
+        st.markdown(
+            """
+            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(169,122,31,0.12);
+                        border:1px solid rgba(169,122,31,0.3); border-radius:12px; padding:3px 10px;
+                        margin-bottom:12px; font-size:0.75rem; color:#6B4E10; font-weight:600; letter-spacing:0.01em;">
+                <span>🛠️</span><span>Dev Mode: Live emails are disabled</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
 
 def top_nav():
     st.markdown(
         """
-        <div class="groc-nav">
+        <div class="groc-nav" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
                 <div class="groc-logo">GrocEase</div>
                 <div class="groc-tagline">Shop together. Split smarter.</div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button onclick="window.history.back()" title="Go Back" style="
+                    background: #FFFFFF; color: #1F4C3D; border: 1.5px solid #C3D6C6;
+                    border-radius: 50%; width: 32px; height: 32px; cursor: pointer;
+                    display: inline-flex; align-items: center; justify-content: center;
+                    font-size: 16px; font-weight: 700; transition: all 0.15s ease;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.06);"
+                    onmouseover="this.style.background='#E7EFE6'; this.style.borderColor='#1F4C3D';"
+                    onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#C3D6C6';">
+                    ‹
+                </button>
+                <button onclick="window.history.forward()" title="Go Forward" style="
+                    background: #FFFFFF; color: #1F4C3D; border: 1.5px solid #C3D6C6;
+                    border-radius: 50%; width: 32px; height: 32px; cursor: pointer;
+                    display: inline-flex; align-items: center; justify-content: center;
+                    font-size: 16px; font-weight: 700; transition: all 0.15s ease;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.06);"
+                    onmouseover="this.style.background='#E7EFE6'; this.style.borderColor='#1F4C3D';"
+                    onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#C3D6C6';">
+                    ›
+                </button>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+

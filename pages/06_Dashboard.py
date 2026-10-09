@@ -12,20 +12,16 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import streamlit as st
 from collections import defaultdict
 
-from style import apply_base_style
+from style import apply_base_style, render_dev_mode_banner
 from utils.session import require_auth, get_current_user_id, get_username
 from utils.formatting import format_currency
 from components.sidebar import render_sidebar
 from components.cards import render_metric_card, render_info_card, render_empty_state
 from components.charts import render_category_pie_chart, render_budget_utilization_chart
-from mock.mock_api import (
-    _init_store,
-    get_rooms,
-    get_grocery_items,
-    get_payments,
-    get_personal_expenses,
-    get_budgets,
-)
+from database.database import get_user_joined_rooms, get_live_grocery_items
+from services.personal_expense_service import get_personal_expenses as svc_get_personal_expenses
+from services.budget_service import get_budgets as svc_get_budgets
+from services.payment_service import get_room_payments as svc_get_room_payments
 
 st.set_page_config(
     page_title="Dashboard — GrocEase",
@@ -41,37 +37,70 @@ render_sidebar()
 user_id = get_current_user_id()
 username = get_username()
 
+# ── Dev mode banner ───────────────────────────────────────────────────────────
+render_dev_mode_banner()
+
 # ── Page title ────────────────────────────────────────────────────────────────
 st.markdown(f"# 📊 Dashboard")
 st.markdown(f"<p style='color:#5B6459; margin-top:-0.8rem;'>Welcome back, <strong>{username}</strong>!</p>", unsafe_allow_html=True)
 st.markdown("<hr style='border-color:#D8D0BE; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
 
-# ── Pull mock data ────────────────────────────────────────────────────────────
-my_rooms   = get_rooms(user_id)
-all_items  = []
-for room in my_rooms:
-    all_items.extend(get_grocery_items(room["id"]))
 
-pending_items = [i for i in all_items if i["status"] == "pending"]
+# ── Pull database data ────────────────────────────────────────────────────────
+db_rooms = get_user_joined_rooms(user_id) or []
+my_rooms = [
+    {
+        "id": r["id"],
+        "name": r["name"],
+        "role": r.get("role", "member"),
+    }
+    for r in db_rooms
+]
+
+all_items = []
+for room in my_rooms:
+    all_items.extend(get_live_grocery_items(room["id"]) or [])
+
+pending_items = [i for i in all_items if i.get("status") == "pending"]
 
 # Payments
 all_payments = []
 for room in my_rooms:
-    all_payments.extend(get_payments(room["id"]))
+    res_p = svc_get_room_payments(user_id, room["id"])
+    if res_p and res_p.get("success"):
+        all_payments.extend(res_p.get("data", []))
 
 amount_owe = sum(
-    p["amount"] for p in all_payments
-    if p["payerUserId"] == user_id and p["paymentStatus"] == "pending"
+    float(p.get("amount", 0)) for p in all_payments
+    if p.get("payer_user_id") == user_id and p.get("payment_status") == "pending"
 )
 amount_owed_to_me = sum(
-    p["amount"] for p in all_payments
-    if p["payeeUserId"] == user_id and p["paymentStatus"] == "pending"
+    float(p.get("amount", 0)) for p in all_payments
+    if p.get("payee_user_id") == user_id and p.get("payment_status") == "pending"
 )
 
-expenses    = get_personal_expenses(user_id)
+exp_res = svc_get_personal_expenses(user_id)
+expenses = [
+    {
+        "id": e["id"],
+        "amount": float(e["amount"]),
+        "category": e["category"],
+        "expenseDate": str(e.get("expense_date") or ""),
+    }
+    for e in (exp_res.get("data", []) if exp_res and exp_res.get("success") else [])
+]
 total_spent = sum(e["amount"] for e in expenses)
 
-budgets     = get_budgets(user_id)
+bg_res = svc_get_budgets(user_id)
+budgets = [
+    {
+        "id": b["id"],
+        "category": b["category"],
+        "monthlyLimit": float(b.get("monthly_limit", 0)),
+    }
+    for b in (bg_res.get("data", []) if bg_res and bg_res.get("success") else [])
+]
+
 spending_by_cat = defaultdict(float)
 for e in expenses:
     spending_by_cat[e["category"]] += e["amount"]

@@ -4,18 +4,25 @@ components/sidebar.py
 GrocEase sidebar navigation component.
 
 Renders the branded sidebar with:
+- Browser-style Back and Forward navigation controls
 - Logo / user greeting
+- Interactive joined room switcher dropdown
 - Page navigation links
-- Current room indicator
 - Logout button
 
 Usage:
-    from components.sidebar import render_sidebar
+    from components.sidebar import render_sidebar, render_room_selector
     render_sidebar()
 """
 
 import streamlit as st
-from utils.session import get_username, get_current_room_name
+from utils.session import (
+    get_username,
+    get_current_user_id,
+    get_current_room_id,
+    get_current_room_name,
+    set_current_room,
+)
 
 
 # Navigation items: (label, emoji, page_path)
@@ -39,11 +46,13 @@ _SIDEBAR_CSS = """
 /* Sidebar base */
 [data-testid="stSidebar"] {
     background-color: #1F4C3D !important;
-    min-width: 220px !important;
+    min-width: 230px !important;
 }
 [data-testid="stSidebar"] * {
     color: #F6F2E9 !important;
 }
+
+
 
 /* Sidebar logo */
 .sb-logo {
@@ -70,7 +79,7 @@ _SIDEBAR_CSS = """
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #C3D6C6;
-    margin: 1rem 0 0.4rem 0;
+    margin: 0.9rem 0 0.3rem 0;
 }
 .sb-user-chip {
     background: rgba(255,255,255,0.1);
@@ -80,17 +89,17 @@ _SIDEBAR_CSS = """
     font-weight: 600;
     color: #F6F2E9;
     display: inline-block;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.4rem;
 }
-.sb-room-chip {
-    background: rgba(169,122,31,0.25);
-    border: 1px solid rgba(169,122,31,0.5);
-    border-radius: 4px;
-    padding: 3px 10px;
-    font-size: 0.78rem;
-    color: #F6F2E9;
-    display: inline-block;
-    margin-top: 0.2rem;
+
+/* Sidebar selectbox styling for rooms */
+[data-testid="stSidebar"] [data-baseweb="select"] {
+    background-color: rgba(255,255,255,0.08) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+    border-radius: 6px !important;
+}
+[data-testid="stSidebar"] [data-baseweb="select"] * {
+    color: #F6F2E9 !important;
 }
 
 /* Nav links in sidebar */
@@ -134,6 +143,56 @@ _SIDEBAR_CSS = """
 """
 
 
+def _get_available_rooms(user_id: int) -> list:
+    """Fetch joined rooms from DB."""
+    try:
+        from database.database import get_user_joined_rooms
+        return get_user_joined_rooms(user_id) or []
+    except Exception:
+        return []
+
+
+def render_room_selector(key_prefix: str = "global"):
+    """
+    Renders an interactive, universal Room Selection dropdown anywhere on a page.
+    Automatically keeps active room in sync across pages.
+    """
+    user_id = get_current_user_id()
+    rooms = _get_available_rooms(user_id)
+    if not rooms:
+        st.info("🏠 You have not joined any rooms yet. Visit **Rooms** to create or join one.")
+        return None
+
+    room_map = {f"{r['name']} ({r.get('secret_code') or r.get('code', '')})": r for r in rooms}
+    current_id = get_current_room_id()
+
+    cur_idx = 0
+    options = list(room_map.keys())
+    for i, (label, r) in enumerate(room_map.items()):
+        if r["id"] == current_id:
+            cur_idx = i
+            break
+    else:
+        # If no room was active, default to first room
+        first_r = rooms[0]
+        set_current_room(first_r["id"], first_r["name"])
+        cur_idx = 0
+
+    selected_label = st.selectbox(
+        "🏠 Active Room",
+        options=options,
+        index=cur_idx,
+        key=f"{key_prefix}_room_dropdown",
+    )
+
+    selected_room = room_map[selected_label]
+    if selected_room["id"] != get_current_room_id():
+        set_current_room(selected_room["id"], selected_room["name"])
+        st.rerun()
+
+    return selected_room
+
+
 def render_sidebar():
     """
     Render the GrocEase sidebar navigation.
@@ -156,18 +215,9 @@ def render_sidebar():
             f'<div class="sb-user-chip">👤 {username}</div>',
             unsafe_allow_html=True,
         )
-
-        # ── Active room chip ──────────────────────────
-        room_name = get_current_room_name()
-        if room_name:
-            st.markdown(
-                f'<div class="sb-room-chip">🏠 {room_name}</div>',
-                unsafe_allow_html=True,
-            )
-
         st.markdown('<hr class="sb-divider">', unsafe_allow_html=True)
 
-        # ── Navigation ────────────────────────────────
+        # ── Navigation Links ──────────────────────────
         st.markdown('<div class="sb-section-label">Navigation</div>', unsafe_allow_html=True)
 
         for label, emoji, path in NAV_ITEMS:

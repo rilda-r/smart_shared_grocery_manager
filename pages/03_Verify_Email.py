@@ -5,7 +5,7 @@ from datetime import datetime
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from style import apply_base_style, top_nav
+from style import apply_base_style, top_nav, hide_sidebar, render_dev_mode_banner
 from session_manager import check_session_timeout
 from database.database import init_db, get_user_by_email, mark_verified, set_otp
 from security.authentication import (
@@ -17,9 +17,15 @@ from security.authentication import (
     OTP_RESEND_COOLDOWN_SECONDS,
 )
 
-st.set_page_config(page_title="Verify Email — GrocEase", page_icon="🛒", layout="centered")
+st.set_page_config(
+    page_title="Verify Email — GrocEase",
+    page_icon="🛒",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+)
 init_db()
 apply_base_style()
+hide_sidebar()
 top_nav()
 check_session_timeout()
 
@@ -45,9 +51,11 @@ _, mid, _ = st.columns([0.2, 3, 0.2])
 with mid:
     st.markdown('<div class="groc-card">', unsafe_allow_html=True)
 
+    render_dev_mode_banner()
+
     if not smtp_is_configured() and st.session_state.get("dev_otp_preview"):
         st.info(
-            f"Dev mode (no SMTP configured): your code is **{st.session_state.dev_otp_preview}**",
+            f"Dev Mode (Live emails disabled): Your verification code is **{st.session_state.dev_otp_preview}**",
             icon="🛠️",
         )
 
@@ -95,25 +103,24 @@ if verify_clicked:
     if not user or not user.get("otp_code"):
         st.error("Invalid verification code. Please try again.")
     else:
-        expiry = datetime.fromisoformat(user["otp_expires_at"])
-        if is_otp_expired(expiry):
+        try:
+            expiry = datetime.fromisoformat(str(user["otp_expires_at"]))
+            expired = is_otp_expired(expiry)
+        except Exception:
+            expired = False
+
+        if expired:
             st.warning("This verification code has expired. Please request a new code.")
-        elif otp_input.strip() != user["otp_code"]:
+        elif otp_input.strip() != str(user["otp_code"]).strip():
             st.error("Invalid verification code. Please try again.")
         else:
             mark_verified(email)
             st.session_state.pop("pending_verification_email", None)
             st.session_state.pop("dev_otp_preview", None)
 
-            # Auto-authenticate user and take directly to Dashboard
-            from utils.security import create_session_token
-            st.session_state.logged_in = True
-            st.session_state.is_authenticated = True
-            st.session_state.user_id = user["id"]
-            st.session_state.user_email = user["email"]
-            st.session_state.user_name = user["full_name"]
-            st.session_state.username = user["full_name"]
-            st.session_state.last_activity = time.time()
-            st.query_params["session"] = create_session_token(user["id"])
-
-            st.switch_page("pages/06_Dashboard.py")
+            # Registration Flow Fix: Do NOT log in automatically.
+            # Redirect to Login screen and require manual credential entry.
+            st.session_state.registration_success_message = (
+                "Account verified successfully! Please log in with your credentials."
+            )
+            st.switch_page("pages/01_Login.py")

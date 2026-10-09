@@ -13,7 +13,7 @@ load_dotenv()
 # Ensure sub-modules can be discovered natively from root context
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from style import apply_base_style, top_nav
+from style import apply_base_style, top_nav, hide_sidebar, render_dev_mode_banner
 from database.database import (
     init_db,
     get_user_by_email,
@@ -34,6 +34,7 @@ st.set_page_config(
 
 init_db()
 apply_base_style()
+hide_sidebar()
 
 # Auto-recover session on page reload/navigation
 sync_auth_state()
@@ -41,11 +42,6 @@ if st.session_state.get("logged_in", False) or st.session_state.get("is_authenti
     st.session_state.splash_completed = True
     st.switch_page("pages/06_Dashboard.py")
 
-# Hide Streamlit's default multipage sidebar navigation panel on login
-st.markdown(
-    "<style>[data-testid='stSidebarNav'] {display: none;}</style>",
-    unsafe_allow_html=True,
-)
 
 # ----------------- PHASE 1: SPLASH SCREEN SEQUENCE -----------------
 if "splash_completed" not in st.session_state:
@@ -142,7 +138,7 @@ if not st.session_state.splash_completed:
         """,
         unsafe_allow_html=True,
     )
-    time.sleep(2.5)
+    time.sleep(0.4)
     st.session_state.splash_completed = True
     st.rerun()
 
@@ -179,9 +175,14 @@ with left:
     )
 
 with right:
+    if "registration_success_message" in st.session_state:
+        st.success(f"✅ {st.session_state.pop('registration_success_message')}")
+
     st.markdown('<div class="groc-card">', unsafe_allow_html=True)
+    render_dev_mode_banner()
     st.markdown("### Login", unsafe_allow_html=True)
     st.write("")
+
 
     email = st.text_input("Email Address", placeholder="you@example.com")
 
@@ -231,16 +232,19 @@ if login_clicked:
         elif not user["is_verified"]:
             st.warning("This account hasn't been verified yet.")
             st.session_state.pending_verification_email = email.strip().lower()
-            if st.button("Verify now"):
-                st.switch_page("pages/03_Verify_Email.py")
+            st.page_link("pages/03_Verify_Email.py", label="👉 Click here to verify your account")
         else:
             reset_failed_login(email)
             st.session_state.logged_in = True
             st.session_state.is_authenticated = True
             st.session_state.user_id = user["id"]
             st.session_state.user_email = user["email"]
-            st.session_state.user_name = user["full_name"]
-            st.session_state.username = user["full_name"]
+            display_nick = user.get("profile_nickname") or user.get("nickname")
+            full_name = user.get("full_name") or user.get("username", "User")
+            st.session_state.user_name = full_name
+            st.session_state.actual_name = full_name
+            st.session_state.nickname = display_nick
+            st.session_state.username = display_nick or full_name
             st.session_state.last_activity = time.time()
 
             token = create_session_token(user["id"])

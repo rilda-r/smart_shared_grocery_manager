@@ -46,11 +46,14 @@ def render_add_expense_form(key_prefix: str = "") -> dict | None:
             category = st.selectbox("Category", EXPENSE_CATEGORIES)
         col_date, col_desc = st.columns(2)
         with col_date:
-            expense_date = st.date_input("Date", value=date.today())
+            expense_date = st.date_input("Date", value=date.today(), max_value=date.today())
         with col_desc:
             description = st.text_input("Description", placeholder="e.g. Lunch")
         submitted = st.form_submit_button("Add Expense", type="primary", use_container_width=True)
         if submitted:
+            if expense_date > date.today():
+                st.error("Expense date cannot be in the future.")
+                return None
             return {
                 "amount": float(amount),
                 "category": category,

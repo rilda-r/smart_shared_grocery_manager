@@ -46,10 +46,15 @@ def prepare_test_database() -> str:
     init_schema()
     with get_connection() as conn:
         cur = conn.cursor()
-        cur.execute("SET FOREIGN_KEY_CHECKS = 0")
-        for table in _TABLES_DROP_ORDER:
-            cur.execute(f"TRUNCATE TABLE `{table}`")
-        cur.execute("SET FOREIGN_KEY_CHECKS = 1")
+        tables_csv = ", ".join(_TABLES_DROP_ORDER)
+        try:
+            cur.execute(f"TRUNCATE TABLE {tables_csv} CASCADE")
+        except Exception:
+            for table in _TABLES_DROP_ORDER:
+                try:
+                    cur.execute(f"TRUNCATE TABLE {table} CASCADE")
+                except Exception:
+                    pass
         conn.commit()
         cur.close()
     return name

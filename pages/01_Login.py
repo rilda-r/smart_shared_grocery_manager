@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from style import apply_base_style, top_nav
+from style import apply_base_style, top_nav, hide_sidebar, render_dev_mode_banner
 from session_manager import check_session_timeout
 from database.database import (
     init_db, get_user_by_email, record_failed_login, reset_failed_login,
@@ -14,9 +14,15 @@ from security.password_hash import verify_password
 from utils.session import sync_auth_state
 from utils.security import create_session_token
 
-st.set_page_config(page_title="Login — GrocEase", page_icon="🛒", layout="wide")
+st.set_page_config(
+    page_title="Login — GrocEase",
+    page_icon="🛒",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 init_db()
 apply_base_style()
+hide_sidebar()
 top_nav()
 
 # Run active session timeout check
@@ -47,9 +53,19 @@ with left:
         """,
         unsafe_allow_html=True,
     )
+    st.markdown(
+        '<div style="font-size:2.5rem; margin-top:1.5rem;">🛒 🥦 🥛 🍎</div>',
+        unsafe_allow_html=True,
+    )
 
 with right:
+    # Notification from registration / verification
+    if "registration_success_message" in st.session_state:
+        st.success(f"✅ {st.session_state.pop('registration_success_message')}")
+
     with st.container(key="login_card"):
+        render_dev_mode_banner()
+
         st.markdown("#### Login")
 
         email = st.text_input("Email Address", placeholder="you@example.com")
@@ -94,7 +110,7 @@ if login_clicked:
         # Lockout check
         if user and user.get("locked_until"):
             try:
-                locked_until = datetime.fromisoformat(user["locked_until"])
+                locked_until = datetime.fromisoformat(str(user["locked_until"]))
             except (ValueError, TypeError):
                 locked_until = None
             if locked_until and datetime.utcnow() < locked_until:
@@ -125,8 +141,7 @@ if login_clicked:
         elif not user["is_verified"]:
             st.warning("Account not verified yet.")
             st.session_state.pending_verification_email = email.strip().lower()
-            if st.button("Verify now"):
-                st.switch_page("pages/03_Verify_Email.py")
+            st.page_link("pages/03_Verify_Email.py", label="👉 Click here to verify your account")
 
         else:
             reset_failed_login(email)
@@ -134,10 +149,14 @@ if login_clicked:
             st.session_state.is_authenticated = True
             st.session_state.user_id = user["id"]
             st.session_state.user_email = user["email"]
-            st.session_state.user_name = user["full_name"]
-            st.session_state.username = user["full_name"]
+            display_nick = user.get("profile_nickname") or user.get("nickname")
+            full_name = user.get("full_name") or user.get("username", "User")
+            st.session_state.user_name = full_name
+            st.session_state.actual_name = full_name
+            st.session_state.nickname = display_nick
+            st.session_state.username = display_nick or full_name
             st.session_state.last_activity = time.time()
 
             token = create_session_token(user["id"])
             st.query_params["session"] = token
-            st.switch_page("pages/06_Dashboard.py")
+            st.switch_page("pages/06_Dashboard.py")

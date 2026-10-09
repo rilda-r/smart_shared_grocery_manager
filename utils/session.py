@@ -65,13 +65,16 @@ def sync_auth_state():
         if user_id:
             user = get_user_by_id(user_id)
             if user:
-                display_name = user.get("full_name") or user.get("username", "User")
+                display_nick = user.get("profile_nickname") or user.get("nickname")
+                full_name = user.get("full_name") or user.get("username", "User")
                 st.session_state["logged_in"] = True
                 st.session_state["is_authenticated"] = True
                 st.session_state["user_id"] = user["id"]
                 st.session_state["user_email"] = user["email"]
-                st.session_state["user_name"] = display_name
-                st.session_state["username"] = display_name
+                st.session_state["user_name"] = full_name
+                st.session_state["actual_name"] = full_name
+                st.session_state["nickname"] = display_nick
+                st.session_state["username"] = display_nick or full_name
                 st.session_state["last_activity"] = time.time()
                 return
 
@@ -83,16 +86,74 @@ def sync_auth_state():
     st.session_state["logged_in"] = False
 
 
+def enforce_nickname_onboarding():
+    """Prompt the user with a mandatory onboarding screen to choose a nickname on first login."""
+    user_id = st.session_state.get("user_id")
+    if not user_id:
+        return
+    nick = st.session_state.get("nickname")
+    if not nick:
+        from database.database import get_profile, update_nickname
+        prof = get_profile(user_id)
+        if prof and prof.get("nickname"):
+            st.session_state["nickname"] = prof["nickname"]
+            st.session_state["username"] = prof["nickname"]
+            st.session_state["user_name"] = prof["nickname"]
+            st.session_state["actual_name"] = prof.get("actual_name") or prof.get("full_name", "")
+            return
+
+        # Mandatory Onboarding Screen
+        st.markdown(
+            """
+            <div style="background:#FFFFFF; border:2px solid #1F4C3D; border-radius:12px;
+                        padding:2rem 2.5rem; max-width:560px; margin:2.5rem auto 1.5rem auto;
+                        box-shadow:0 10px 32px rgba(31,76,61,0.12); text-align:center;">
+                <div style="font-size:3rem; margin-bottom:0.4rem;">👋</div>
+                <h2 style="margin-bottom:0.4rem; color:#1F4C3D; font-family:'Fraunces',Georgia,serif;">Choose your Nickname</h2>
+                <p style="color:#5B6459; font-size:0.95rem; margin-bottom:1rem; line-height:1.5;">
+                    Welcome to GrocEase! Please choose a public <strong>Nickname</strong>.
+                    This nickname will be your public displayed name across all rooms, grocery lists, and expense splits.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        _, mcol, _ = st.columns([1, 2, 1])
+        with mcol:
+            with st.form("mandatory_nickname_onboarding_form"):
+                new_nick = st.text_input("Your Public Nickname", placeholder="e.g. Alex, ChefSam, Maya")
+                st.caption("2–30 characters. You can update this later in your Profile.")
+                submitted = st.form_submit_button("Save & Continue", type="primary", use_container_width=True)
+
+                if submitted:
+                    cleaned = new_nick.strip()
+                    if len(cleaned) < 2 or len(cleaned) > 30:
+                        st.error("Nickname must be between 2 and 30 characters.")
+                    else:
+                        update_nickname(user_id, cleaned)
+                        st.session_state["nickname"] = cleaned
+                        st.session_state["username"] = cleaned
+                        st.session_state["user_name"] = cleaned
+                        st.success(f"Welcome, {cleaned}!")
+                        st.rerun()
+
+        st.stop()
+
+
 def require_auth():
     """
     Call at the top of every protected page.
-    Syncs auth state and redirects to login if not authenticated.
+    Syncs auth state, redirects to login if not authenticated, and enforces nickname onboarding.
     """
     sync_auth_state()
     if not st.session_state.get("is_authenticated", False):
+        from style import hide_sidebar
+        hide_sidebar()
         st.warning("Please log in to access this page.")
         st.page_link("pages/01_Login.py", label="Go to Login")
         st.stop()
+
+    enforce_nickname_onboarding()
 
 
 def logout_user():
@@ -108,6 +169,8 @@ def logout_user():
         "username",
         "user_name",
         "user_email",
+        "nickname",
+        "actual_name",
         "last_activity",
         "current_room_id",
         "current_room_name",
@@ -123,7 +186,12 @@ def get_current_user_id() -> int:
 
 
 def get_username() -> str:
-    return st.session_state.get("username", "User")
+    return st.session_state.get("nickname") or st.session_state.get("username", "User")
+
+
+def get_actual_name() -> str:
+    return st.session_state.get("actual_name") or st.session_state.get("user_name", "")
+
 
 
 def set_current_room(room_id: int, room_name: str):

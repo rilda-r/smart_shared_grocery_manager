@@ -56,6 +56,9 @@ class Settings:
     ocr_provider: str
     tesseract_cmd: str
     ocr_language: str
+    db_url: str = ""
+    db_sslmode: str = "prefer"
+    dev_mode: bool = True
 
 
 def _int_env(name: str, default: int) -> int:
@@ -67,12 +70,21 @@ def _int_env(name: str, default: int) -> int:
 
 def get_settings() -> Settings:
     """Build a fresh Settings snapshot from the current environment."""
+    db_url = (
+        os.environ.get("GROCEASE_DB_URL")
+        or os.environ.get("SUPABASE_DB_URL")
+        or os.environ.get("DATABASE_URL")
+        or ""
+    )
+    dev_mode_str = os.environ.get("GROCEASE_DEV_MODE", "true").lower()
+    dev_mode = dev_mode_str in ("true", "1", "yes", "on")
+
     return Settings(
-        db_host=os.environ.get("GROCEASE_DB_HOST", "localhost"),
-        db_port=_int_env("GROCEASE_DB_PORT", 3306),
-        db_user=os.environ.get("GROCEASE_DB_USER", ""),
-        db_password=os.environ.get("GROCEASE_DB_PASSWORD", ""),
-        db_name=os.environ.get("GROCEASE_DB_NAME", "grocease"),
+        db_host=os.environ.get("GROCEASE_DB_HOST") or os.environ.get("SUPABASE_DB_HOST", "localhost"),
+        db_port=_int_env("GROCEASE_DB_PORT", _int_env("SUPABASE_DB_PORT", 5432)),
+        db_user=os.environ.get("GROCEASE_DB_USER") or os.environ.get("SUPABASE_DB_USER", "postgres"),
+        db_password=os.environ.get("GROCEASE_DB_PASSWORD") or os.environ.get("SUPABASE_DB_PASSWORD", ""),
+        db_name=os.environ.get("GROCEASE_DB_NAME") or os.environ.get("SUPABASE_DB_NAME", "postgres"),
         secret_key=os.environ.get("GROCEASE_SECRET_KEY") or _EPHEMERAL_SECRET_KEY,
         session_ttl_seconds=_int_env("GROCEASE_SESSION_TTL_SECONDS", 8 * 3600),
         bcrypt_rounds=max(4, min(_int_env("GROCEASE_BCRYPT_ROUNDS", 12), 15)),
@@ -80,4 +92,8 @@ def get_settings() -> Settings:
         ocr_provider=os.environ.get("GROCEASE_OCR_PROVIDER", "tesseract").lower(),
         tesseract_cmd=os.environ.get("GROCEASE_TESSERACT_CMD", ""),
         ocr_language=os.environ.get("GROCEASE_OCR_LANGUAGE", "eng"),
+        db_url=db_url,
+        db_sslmode=os.environ.get("GROCEASE_DB_SSLMODE", "prefer"),
+        dev_mode=dev_mode,
     )
+
