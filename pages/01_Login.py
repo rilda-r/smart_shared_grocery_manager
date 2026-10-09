@@ -92,7 +92,7 @@ with right:
         login_clicked = st.button("Login", type="primary", use_container_width=True)
 
         st.markdown(
-            "<p style='text-align:center; margin-top:1rem; font-size:0.9rem; color:#20261F; margin-bottom:0.2rem;'>New here?</p>",
+            "<p style='text-align:center; margin-top:1rem; font-size:0.9rem; color:#372713; font-weight:500; margin-bottom:0.2rem;'>New here?</p>",
             unsafe_allow_html=True,
         )
         with st.container(key="create_account_link_wrap"):

@@ -142,22 +142,35 @@ else:
         purchased_qty = item.get("purchasedQuantity", 0) or 0
         remaining_qty = max(0, total_qty - purchased_qty)
 
-        col_name, col_qty, col_buy, col_na = st.columns([3, 1.8, 1.6, 1.4])
-        col_name.markdown(
-            f"**{item['itemName']}**<br><span style='font-size:0.78rem; color:#5B6459; background:#EFECE6; padding:2px 8px; border-radius:10px;'>👤 Added by {added_by}</span>",
+        st.markdown(
+            f"""
+            <div style="background:#FFFFFF; border:1px solid rgba(163, 150, 112, 0.35); border-left:4px solid #5C0203;
+                        border-radius:16px; padding:0.95rem 1.25rem; margin-bottom:0.6rem; box-shadow:0 4px 14px rgba(55, 39, 19, 0.03);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:1.05rem; font-weight:700; color:#372713;">🛒 {item['itemName']}</div>
+                        <div style="margin-top:4px;">
+                            <span style='font-size:0.78rem; color:#4D4828; background:#FAF6F0; border:1px solid #A39670; padding:2px 8px; border-radius:12px; font-weight:600;'>👤 Added by {added_by}</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-family:'Fraunces',Georgia,serif; font-size:1.2rem; font-weight:700; color:#5C0203;">Remaining: ×{remaining_qty}</div>
+                        <div style="font-size:0.8rem; color:#4D4828; font-weight:600;">Bought: {purchased_qty} / {total_qty}</div>
+                    </div>
+                </div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
-        col_qty.markdown(
-            f"**Remaining: ×{remaining_qty}**<br>"
-            f"<span style='font-size:0.75rem; color:#1F4C3D; font-weight:600;'>Bought: {purchased_qty} / {total_qty}</span>",
-            unsafe_allow_html=True,
-        )
+        col_buy, col_na, _ = st.columns([1.5, 1.5, 3])
         with col_buy:
             if st.button("🛒 +1 Bought", key=f"buy_{item['id']}", help="Mark 1 purchased (remaining decreases by 1)"):
                 do_mark_purchased(item["id"], inc=1)
         with col_na:
+            st.markdown('<div class="groc-secondary">', unsafe_allow_html=True)
             if st.button("❌ Unavailable", key=f"na_{item['id']}"):
                 do_mark_status(item["id"], "unavailable")
+            st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -168,36 +181,68 @@ if purchased_items:
         added_by = item.get("addedByName") or item.get("added_by_name") or "Member"
         total_qty = item["quantity"]
         purchased_count = item.get("purchasedQuantity", total_qty) or total_qty
-        col_name, col_qty, col_undo, col_reset = st.columns([3, 1.5, 1.3, 1.3])
-        col_name.markdown(
-            f"~~{item['itemName']}~~<br><span style='font-size:0.78rem; color:#5B6459; background:#EFECE6; padding:2px 8px; border-radius:10px;'>👤 Added by {added_by}</span>",
+        st.markdown(
+            f"""
+            <div style="background:#FAF6F0; border:1px solid rgba(163, 150, 112, 0.35); border-left:4px solid #4D4828;
+                        border-radius:16px; padding:0.9rem 1.25rem; margin-bottom:0.5rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:1rem; font-weight:600; color:#6B5A47; text-decoration:line-through;">✅ {item['itemName']}</div>
+                        <div style="margin-top:3px;">
+                            <span style='font-size:0.76rem; color:#4D4828; background:#FFFFFF; border:1px solid #A39670; padding:2px 8px; border-radius:12px;'>👤 Added by {added_by}</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:700; color:#4D4828;">Total: ×{total_qty}</div>
+                        <div style="font-size:0.8rem; color:#4D4828; font-weight:600;">Completed: {purchased_count}</div>
+                    </div>
+                </div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
-        col_qty.markdown(
-            f"**Total: ×{total_qty}**<br><span style='font-size:0.75rem; color:#1F4C3D; font-weight:600;'>Bought: {purchased_count}</span>",
-            unsafe_allow_html=True,
-        )
+        col_undo, col_reset, _ = st.columns([1.3, 1.3, 3])
         with col_undo:
+            st.markdown('<div class="groc-secondary">', unsafe_allow_html=True)
             if st.button("↩ -1 Undo", key=f"undo_buy_{item['id']}", help="Decrease purchased count by 1"):
                 do_mark_purchased(item["id"], inc=-1)
+            st.markdown('</div>', unsafe_allow_html=True)
         with col_reset:
+            st.markdown('<div class="groc-secondary">', unsafe_allow_html=True)
             if st.button("🔄 Reset", key=f"reset_buy_{item['id']}", help="Reset to 0 bought"):
                 do_reset_item(item["id"])
+            st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Unavailable items ─────────────────────────────────────────────────────────
 if unavailable_items:
     st.markdown(f"### ❌ Unavailable ({len(unavailable_items)})")
     for item in unavailable_items:
         added_by = item.get("addedByName") or item.get("added_by_name") or "Member"
-        col_name, col_qty, col_undo = st.columns([3, 1, 2])
-        col_name.markdown(
-            f"{item['itemName']}<br><span style='font-size:0.78rem; color:#5B6459; background:#EFECE6; padding:2px 8px; border-radius:10px;'>👤 Added by {added_by}</span>",
+        st.markdown(
+            f"""
+            <div style="background:#FFFFFF; border:1px solid rgba(163, 150, 112, 0.35); border-left:4px solid #5C0203;
+                        border-radius:16px; padding:0.9rem 1.25rem; margin-bottom:0.5rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:1rem; font-weight:600; color:#5C0203;">❌ {item['itemName']} (Unavailable)</div>
+                        <div style="margin-top:3px;">
+                            <span style='font-size:0.76rem; color:#6B5A47;'>👤 Added by {added_by}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span style="font-weight:700; color:#5C0203;">×{item['quantity']}</span>
+                    </div>
+                </div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
-        col_qty.write(f"×{item['quantity']}")
+        col_undo, _ = st.columns([1.3, 4])
         with col_undo:
+            st.markdown('<div class="groc-secondary">', unsafe_allow_html=True)
             if st.button("↩ Undo", key=f"undo_na_{item['id']}"):
                 do_mark_status(item["id"], "pending")
+            st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown("---")

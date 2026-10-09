@@ -31,25 +31,26 @@ def format_datetime(iso_str: str) -> str:
 
 
 STATUS_BADGE = {
-    "pending":     ("🟡", "#A97A1F", "#FFF8E1"),
-    "purchased":   ("✅", "#1F4C3D", "#E7EFE6"),
-    "unavailable": ("❌", "#9C4B3E", "#FDE8E4"),
-    "settled":     ("✅", "#1F4C3D", "#E7EFE6"),
-    "reported":    ("⚠️", "#9C4B3E", "#FDE8E4"),
-    "completed":   ("✅", "#1F4C3D", "#E7EFE6"),
-    "failed":      ("❌", "#9C4B3E", "#FDE8E4"),
-    "processing":  ("⏳", "#5B6459", "#F0F0F0"),
-    "creator":     ("👑", "#A97A1F", "#FFF8E1"),
-    "member":      ("👤", "#1F4C3D", "#E7EFE6"),
+    "pending":     ("⏳", "#A39670", "#FAF6F0"),
+    "purchased":   ("✅", "#4D4828", "#ECEAE0"),
+    "unavailable": ("❌", "#5C0203", "#FCEEEF"),
+    "settled":     ("✅", "#4D4828", "#ECEAE0"),
+    "reported":    ("⚠️", "#5C0203", "#FCEEEF"),
+    "completed":   ("✅", "#4D4828", "#ECEAE0"),
+    "failed":      ("❌", "#5C0203", "#FCEEEF"),
+    "processing":  ("⏳", "#6B5A47", "#F5ECE3"),
+    "creator":     ("👑", "#5C0203", "#FCEEEF"),
+    "member":      ("👤", "#4D4828", "#ECEAE0"),
 }
 
 
 def badge_html(status: str) -> str:
     """Return an HTML span badge for the given status."""
-    icon, color, bg = STATUS_BADGE.get(status.lower(), ("•", "#5B6459", "#F0F0F0"))
+    icon, color, bg = STATUS_BADGE.get(status.lower(), ("•", "#6B5A47", "#F5ECE3"))
     return (
-        f'<span style="background:{bg}; color:{color}; border:1px solid {color}; '
-        f'border-radius:4px; padding:2px 8px; font-size:0.82rem; font-weight:600;">'
+        f'<span style="background:{bg}; color:{color}; border:1.2px solid {color}; '
+        f'border-radius:20px; padding:3px 10px; font-size:0.8rem; font-weight:700; '
+        f'display:inline-flex; align-items:center; gap:4px; box-shadow:0 1px 3px rgba(55,39,19,0.03);">'
         f"{icon} {status.capitalize()}</span>"
     )
 
@@ -57,7 +58,7 @@ def badge_html(status: str) -> str:
 def percentage_color(pct: float) -> str:
     """Return a hex color for a budget percentage bar."""
     if pct >= 100:
-        return "#9C4B3E"  # RUST — over budget
+        return "#5C0203"  # OXBLOOD — over budget
     if pct >= 80:
-        return "#A97A1F"  # GOLD — warning
-    return "#1F4C3D"      # FOREST — healthy
+        return "#A39670"  # VINTAGE ROSE — warning
+    return "#4D4828"      # EMERALD SAGE — healthy

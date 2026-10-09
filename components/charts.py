@@ -16,25 +16,24 @@ import streamlit as st
 from collections import defaultdict
 
 # Palette
-FOREST  = "#1F4C3D"
-MOSS    = "#3D7A5D"
-SAGE    = "#E7EFE6"
-GOLD    = "#A97A1F"
-RUST    = "#9C4B3E"
-INK_MUT = "#5B6459"
-LINE    = "#D8D0BE"
-PAPER   = "#F6F2E9"
+OXBLOOD      = "#5C0203"  # Primary highlights & titles
+CHAMPAGNE    = "#D9C4B1"  # Canvas warm base
+EMERALD_SAGE = "#4D4828"  # Success & secondary accents
+ESPRESSO     = "#372713"  # Text & dark elements
+VINTAGE_ROSE = "#A39670"  # Subtle tags, borders
+SURFACE      = "#FFFFFF"  # Crisp card background
 
-CATEGORY_COLORS = [FOREST, MOSS, GOLD, RUST, "#4A90D9", "#7B5EA7", "#D4845A"]
+CATEGORY_COLORS = [OXBLOOD, EMERALD_SAGE, VINTAGE_ROSE, "#853629", "#635D39", "#BD7B66", "#372713"]
 
 
 def _base_fig(figsize=(6, 4)):
     fig, ax = plt.subplots(figsize=figsize)
-    fig.patch.set_facecolor(PAPER)
-    ax.set_facecolor(PAPER)
-    ax.tick_params(colors=INK_MUT, labelsize=9)
+    fig.patch.set_facecolor(SURFACE)
+    ax.set_facecolor(SURFACE)
+    ax.tick_params(colors=ESPRESSO, labelsize=9)
     for spine in ax.spines.values():
-        spine.set_edgecolor(LINE)
+        spine.set_edgecolor(CHAMPAGNE)
+        spine.set_linewidth(1.0)
     return fig, ax
 
 
@@ -63,11 +62,11 @@ def render_category_pie_chart(expenses: list):
         autopct="%1.0f%%",
         startangle=140,
         pctdistance=0.82,
-        wedgeprops={"linewidth": 1.5, "edgecolor": PAPER},
+        wedgeprops={"linewidth": 1.5, "edgecolor": SURFACE},
     )
     for at in autotexts:
         at.set_fontsize(9)
-        at.set_color(PAPER)
+        at.set_color(SURFACE)
         at.set_fontweight("bold")
 
     ax.legend(
@@ -79,7 +78,7 @@ def render_category_pie_chart(expenses: list):
         fontsize=8,
         framealpha=0,
     )
-    ax.set_title("Spending by Category", fontsize=11, color=FOREST, fontweight="bold", pad=10)
+    ax.set_title("Spending by Category", fontsize=11, color=OXBLOOD, fontweight="bold", pad=10)
     plt.tight_layout()
     st.pyplot(fig)
     plt.close(fig)
@@ -104,16 +103,16 @@ def render_monthly_bar_chart(expenses: list):
     labels = [m[5:] + "/" + m[2:4] for m in months]  # "MM/YY"
 
     fig, ax = _base_fig(figsize=(6, 3.5))
-    bars = ax.bar(labels, values, color=FOREST, edgecolor=PAPER, linewidth=0.8, width=0.55)
-    ax.set_ylabel("Amount (₹)", fontsize=9, color=INK_MUT)
-    ax.set_title("Monthly Spending", fontsize=11, color=FOREST, fontweight="bold")
+    bars = ax.bar(labels, values, color=OXBLOOD, edgecolor=SURFACE, linewidth=0.8, width=0.55)
+    ax.set_ylabel("Amount (₹)", fontsize=9, color=ESPRESSO)
+    ax.set_title("Monthly Spending", fontsize=11, color=OXBLOOD, fontweight="bold")
     ax.set_ylim(0, max(values) * 1.2)
     for bar, val in zip(bars, values):
         ax.text(
             bar.get_x() + bar.get_width() / 2,
             bar.get_height() + max(values) * 0.02,
             f"₹{val:,.0f}",
-            ha="center", va="bottom", fontsize=8, color=INK_MUT,
+            ha="center", va="bottom", fontsize=8, color=ESPRESSO,
         )
     plt.tight_layout()
     st.pyplot(fig)
@@ -139,17 +138,17 @@ def render_budget_utilization_chart(budgets: list, spending_by_category: dict):
     y = range(len(categories))
     fig, ax = _base_fig(figsize=(6, max(2.5, len(categories) * 0.8)))
 
-    ax.barh(list(y), limits,    color=SAGE,   edgecolor=LINE,   linewidth=0.8, label="Limit",   height=0.45)
-    ax.barh(list(y), spendings, color=FOREST,  edgecolor=PAPER, linewidth=0.8, label="Spent",   height=0.45)
+    ax.barh(list(y), limits,    color=VINTAGE_ROSE, edgecolor=CHAMPAGNE, linewidth=0.8, label="Limit",   height=0.45)
+    ax.barh(list(y), spendings, color=OXBLOOD,      edgecolor=SURFACE,   linewidth=0.8, label="Spent",   height=0.45)
 
     ax.set_yticks(list(y))
     ax.set_yticklabels(categories, fontsize=9)
-    ax.set_xlabel("Amount (₹)", fontsize=9, color=INK_MUT)
-    ax.set_title("Budget Utilization", fontsize=11, color=FOREST, fontweight="bold")
+    ax.set_xlabel("Amount (₹)", fontsize=9, color=ESPRESSO)
+    ax.set_title("Budget Utilization", fontsize=11, color=OXBLOOD, fontweight="bold")
 
     legend_patches = [
-        mpatches.Patch(color=SAGE,   label="Limit"),
-        mpatches.Patch(color=FOREST, label="Spent"),
+        mpatches.Patch(color=VINTAGE_ROSE, label="Limit"),
+        mpatches.Patch(color=OXBLOOD,      label="Spent"),
     ]
     ax.legend(handles=legend_patches, fontsize=8, framealpha=0, loc="lower right")
     plt.tight_layout()
@@ -176,12 +175,12 @@ def render_monthly_history_chart(history_records: list):
     width = 0.25
 
     fig, ax = _base_fig(figsize=(7, 3.8))
-    ax.bar(x - width, budgets, width, label="Budget", color=GOLD, edgecolor=PAPER)
-    ax.bar(x, spents, width, label="Spent", color=RUST, edgecolor=PAPER)
-    ax.bar(x + width, saveds, width, label="Saved", color=FOREST, edgecolor=PAPER)
+    ax.bar(x - width, budgets, width, label="Budget", color=VINTAGE_ROSE, edgecolor=SURFACE)
+    ax.bar(x,         spents,  width, label="Spent",  color=OXBLOOD,      edgecolor=SURFACE)
+    ax.bar(x + width, saveds,  width, label="Saved",  color=EMERALD_SAGE, edgecolor=SURFACE)
 
-    ax.set_ylabel("Amount (₹)", fontsize=9, color=INK_MUT)
-    ax.set_title("Historical Budget vs. Spent vs. Saved", fontsize=11, color=FOREST, fontweight="bold")
+    ax.set_ylabel("Amount (₹)", fontsize=9, color=ESPRESSO)
+    ax.set_title("Historical Budget vs. Spent vs. Saved", fontsize=11, color=OXBLOOD, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels(months, fontsize=9)
     ax.legend(fontsize=8, framealpha=0)
@@ -206,13 +205,13 @@ def render_month_end_summary_chart(category_breakdown: dict):
     height = 0.35
 
     fig, ax = _base_fig(figsize=(6.5, max(2.8, len(categories) * 0.75)))
-    ax.barh(y - height/2, spent_vals, height, label="Used (Spent)", color=RUST, edgecolor=PAPER)
-    ax.barh(y + height/2, saved_vals, height, label="Saved", color=FOREST, edgecolor=PAPER)
+    ax.barh(y - height/2, spent_vals, height, label="Used (Spent)", color=OXBLOOD,      edgecolor=SURFACE)
+    ax.barh(y + height/2, saved_vals, height, label="Saved",        color=EMERALD_SAGE, edgecolor=SURFACE)
 
     ax.set_yticks(y)
     ax.set_yticklabels(categories, fontsize=9)
-    ax.set_xlabel("Amount (₹)", fontsize=9, color=INK_MUT)
-    ax.set_title("Month-End Breakdown: Used vs. Saved", fontsize=11, color=FOREST, fontweight="bold")
+    ax.set_xlabel("Amount (₹)", fontsize=9, color=ESPRESSO)
+    ax.set_title("Month-End Breakdown: Used vs. Saved", fontsize=11, color=OXBLOOD, fontweight="bold")
     ax.legend(fontsize=8, framealpha=0, loc="lower right")
     plt.tight_layout()
     st.pyplot(fig)

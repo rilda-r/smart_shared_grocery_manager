@@ -1,33 +1,46 @@
 import streamlit as st
 
-PAPER = "#F6F2E9"
-SURFACE = "#FFFFFF"
-INK = "#20261F"
-INK_MUTED = "#5B6459"
-FOREST = "#1F4C3D"
-MOSS = "#3D7A5D"
-SAGE = "#E7EFE6"
-LINE = "#D8D0BE"
-LINE_GREEN = "#C3D6C6"
-GOLD = "#A97A1F"
-RUST = "#9C4B3E"
-BLACK = "#0F0F0F"
-BLACK_HOVER = "#2A2A2A"
+PAPER = "#D9C4B1"           # CHAMPAGNE: Warm, soft canvas background
+SURFACE = "#FFFFFF"         # Crisp White containers for readability
+SURFACE_WARM = "#FCFBF8"    # Soft warm ivory container
+INK = "#372713"             # ESPRESSO: Rich dark text & details
+INK_MUTED = "#6B5A47"       # Muted espresso
+PRIMARY = "#5C0203"         # OXBLOOD: Key primary actions, highlights, headers
+PRIMARY_HOVER = "#7A0A0C"   # Deeper oxblood hover
+SECONDARY = "#4D4828"       # EMERALD SAGE: Success, secondary actions, indicators
+ACCENT_WARM = "#A39670"     # VINTAGE ROSE: Warm secondary elements, borders, subtle tags
+LINE = "rgba(163, 150, 112, 0.35)" # Soft vintage rose border
+LINE_SOLID = "#A39670"
+SIDEBAR_BG = "#2B1D0F"      # Sleek deep espresso for vertical sidebar
 
 BASE_CSS = f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 html, body, [class*="css"] {{
-    font-family: 'Inter', -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
     color: {INK} !important;
 }}
-.stApp {{ background-color: {PAPER}; }}
+.stApp {{ 
+    background-color: {PAPER} !important;
+    background-image: radial-gradient(rgba(163, 150, 112, 0.12) 1px, transparent 0);
+    background-size: 24px 24px;
+}}
 
+/* Typography */
 h1, h2, h3, h4 {{
     font-family: 'Fraunces', Georgia, serif;
-    color: {FOREST} !important;
-    font-weight: 600 !important;
+    color: {PRIMARY} !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em;
+}}
+h1 {{ font-size: 2.3rem !important; margin-bottom: 0.4rem !important; }}
+h2 {{ font-size: 1.8rem !important; }}
+h3 {{ font-size: 1.35rem !important; }}
+h4 {{ font-size: 1.1rem !important; }}
+
+p, span, label, div {{
+    color: {INK};
 }}
 
 #MainMenu, footer, .stDeployButton, [data-testid="stToolbarActions"] {{
@@ -44,228 +57,205 @@ header [data-testid="stToolbar"] {{
     display: none !important;
 }}
 
+.block-container {{ 
+    padding-top: 2rem; 
+    padding-bottom: 3.5rem;
+    max-width: 1140px; 
+}}
 
-.block-container {{ padding-top: 2rem; max-width: 1120px; }}
-
-/* All Streamlit buttons = black */
+/* Streamlit Primary & Default Buttons (OXBLOOD) */
 .stButton > button {{
-    background-color: {BLACK} !important;
-    color: {PAPER} !important;
+    background-color: {PRIMARY} !important;
+    color: #FFFFFF !important;
     border: none !important;
-    border-radius: 6px !important;
-    padding: 0.6rem 1.4rem !important;
+    border-radius: 14px !important;
+    padding: 0.65rem 1.5rem !important;
     font-weight: 600 !important;
     font-size: 0.94rem !important;
-    box-shadow: none !important;
-    transition: background-color 0.15s ease;
+    box-shadow: 0 4px 12px rgba(92, 2, 3, 0.22) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    letter-spacing: 0.01em;
 }}
-.stButton > button:hover {{ background-color: {BLACK_HOVER} !important; }}
-.stButton > button:focus {{ background-color: {BLACK} !important; color: {PAPER} !important; }}
-
-/* Force button label/icon text to inherit the button's own color.
-   Without this, the global `[class*="css"]` text-color rule above
-   wins over the button's intended color on the inner <p>/<span>
-   Streamlit wraps the label in, making labels like "Logout" render
-   in near-black INK on the near-black button background. */
+.stButton > button:hover {{ 
+    background-color: {PRIMARY_HOVER} !important; 
+    box-shadow: 0 6px 16px rgba(92, 2, 3, 0.32) !important;
+    transform: translateY(-1px);
+}}
+.stButton > button:active {{
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(92, 2, 3, 0.2) !important;
+}}
+.stButton > button:focus {{ 
+    background-color: {PRIMARY} !important; 
+    color: #FFFFFF !important; 
+    box-shadow: 0 0 0 3px rgba(92, 2, 3, 0.25) !important;
+}}
 .stButton > button * {{ color: inherit !important; }}
 
-/* Secondary buttons */
-.groc-secondary .stButton > button {{
-    background-color: transparent !important;
-    color: {FOREST} !important;
-    border: 1.5px solid {FOREST} !important;
+/* Secondary button style (EMERALD SAGE / WARM OUTLINE) */
+.groc-secondary .stButton > button,
+button[kind="secondary"] {{
+    background-color: {SURFACE_WARM} !important;
+    color: {SECONDARY} !important;
+    border: 1.5px solid {SECONDARY} !important;
+    box-shadow: 0 2px 8px rgba(77, 72, 40, 0.08) !important;
 }}
-.groc-secondary .stButton > button:hover {{ background-color: {SAGE} !important; }}
+.groc-secondary .stButton > button:hover,
+button[kind="secondary"]:hover {{ 
+    background-color: #EAE6DC !important; 
+    color: {INK} !important;
+    border-color: {SECONDARY} !important;
+    transform: translateY(-1px);
+}}
 
-/* Danger buttons */
+/* Danger button style (SOFT OXBLOOD OUTLINE) */
 .groc-danger .stButton > button {{
-    background-color: transparent !important;
-    color: {RUST} !important;
-    border: 1.5px solid {RUST} !important;
+    background-color: #FFF5F5 !important;
+    color: {PRIMARY} !important;
+    border: 1.5px solid {PRIMARY} !important;
+    box-shadow: none !important;
 }}
 .groc-danger .stButton > button:hover {{
-    background-color: {RUST} !important;
-    color: {PAPER} !important;
+    background-color: {PRIMARY} !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px);
 }}
 
-/* Inputs */
-.stTextInput div div input {{
+/* Form Inputs (Outlined, Rounded, Soft Focus) */
+.stTextInput div div input,
+.stNumberInput div div input,
+.stDateInput div div input,
+.stTextArea div div textarea {{
     color: {INK} !important;
     background-color: {SURFACE} !important;
-    border: 1.5px solid {LINE} !important;
-    border-radius: 6px !important;
-    font-size: 1rem !important;
-    padding: 0.6rem 0.8rem !important;
+    border: 1.5px solid {ACCENT_WARM} !important;
+    border-radius: 12px !important;
+    font-size: 0.98rem !important;
+    padding: 0.65rem 0.95rem !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 1px 3px rgba(55, 39, 19, 0.03) !important;
 }}
-.stTextInput div div input:focus {{
-    border-color: {FOREST} !important;
-    box-shadow: 0 0 0 1px {FOREST} !important;
+.stTextInput div div input:focus,
+.stNumberInput div div input:focus,
+.stDateInput div div input:focus,
+.stTextArea div div textarea:focus {{
+    border-color: {PRIMARY} !important;
+    box-shadow: 0 0 0 3px rgba(92, 2, 3, 0.18) !important;
+    background-color: #FFFFFF !important;
 }}
 
-/* Cards */
+/* Selectbox Dropdown */
+[data-baseweb="select"] > div {{
+    background-color: {SURFACE} !important;
+    border: 1.5px solid {ACCENT_WARM} !important;
+    border-radius: 12px !important;
+    color: {INK} !important;
+    box-shadow: 0 1px 3px rgba(55, 39, 19, 0.03) !important;
+}}
+[data-baseweb="select"] > div:focus-within {{
+    border-color: {PRIMARY} !important;
+    box-shadow: 0 0 0 3px rgba(92, 2, 3, 0.18) !important;
+}}
+
+/* Expanders */
+div[data-testid="stExpander"] {{
+    background-color: {SURFACE} !important;
+    border: 1px solid {LINE} !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 14px rgba(55, 39, 19, 0.04) !important;
+    margin-bottom: 0.9rem !important;
+    overflow: hidden !important;
+}}
+div[data-testid="stExpander"] summary {{
+    padding: 0.85rem 1.2rem !important;
+    font-weight: 600 !important;
+    color: {INK} !important;
+}}
+div[data-testid="stExpander"] summary:hover {{
+    background-color: {SURFACE_WARM} !important;
+    color: {PRIMARY} !important;
+}}
+
+/* Tabs */
+button[data-baseweb="tab"] {{
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-weight: 600 !important;
+    color: {SECONDARY} !important;
+    border-radius: 10px 10px 0 0 !important;
+    padding: 0.6rem 1.2rem !important;
+    transition: all 0.15s ease !important;
+}}
+button[data-baseweb="tab"][aria-selected="true"] {{
+    color: {PRIMARY} !important;
+    border-bottom: 2.5px solid {PRIMARY} !important;
+    background: transparent !important;
+}}
+
+/* Cards & Layout Blocks */
 .groc-card {{
     background-color: {SURFACE};
     border: 1px solid {LINE};
-    border-top: 3px solid {FOREST};
-    border-radius: 4px;
-    padding: 1.75rem;
+    border-top: 4px solid {PRIMARY};
+    border-radius: 20px;
+    padding: 1.85rem;
+    box-shadow: 0 8px 24px rgba(55, 39, 19, 0.06), 0 2px 6px rgba(55, 39, 19, 0.03);
+    margin-bottom: 1.2rem;
 }}
 .groc-panel {{
-    background-color: {SAGE};
-    border: 1px solid {LINE_GREEN};
-    border-radius: 4px;
+    background-color: {SURFACE_WARM};
+    border: 1px solid {ACCENT_WARM};
+    border-radius: 18px;
     padding: 1.5rem;
+    box-shadow: 0 4px 16px rgba(55, 39, 19, 0.04);
 }}
 .groc-hr {{
     border: none;
     border-top: 1px solid {LINE};
-    margin: 2rem 0;
+    margin: 1.6rem 0;
 }}
 
-/* Nav */
+/* Nav Banner */
 .groc-nav {{
-    padding: 0.4rem 0 1.3rem 0;
+    padding: 0.6rem 0 1.2rem 0;
     border-bottom: 1px solid {LINE};
-    margin-bottom: 2rem;
+    margin-bottom: 1.8rem;
 }}
 .groc-logo {{
     font-family: 'Fraunces', serif;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: {FOREST};
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: {PRIMARY};
+    letter-spacing: -0.02em;
 }}
 .groc-tagline {{
     color: {INK_MUTED};
-    font-size: 0.86rem;
+    font-size: 0.88rem;
     font-weight: 500;
     margin-top: -0.1rem;
 }}
-
 .groc-muted {{ color: {INK_MUTED} !important; }}
 
-.groc-feature-icon {{
-    font-size: 1.6rem;
-    background-color: {SAGE};
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    margin-bottom: 0.7rem;
-}}
-
-/* ============ st.page_link — THE WORKING LINK ============ */
+/* Page Links */
 [data-testid="stPageLink"] {{ margin: 0 !important; }}
-
 [data-testid="stPageLink"] a,
 [data-testid="stPageLink-NavLink"] {{
     background-color: transparent !important;
     border: none !important;
     padding: 0 !important;
-    color: {FOREST} !important;
+    color: {PRIMARY} !important;
     font-weight: 600 !important;
-    font-size: 0.92rem !important;
+    font-size: 0.93rem !important;
     text-decoration: none !important;
 }}
 [data-testid="stPageLink"] a p,
 [data-testid="stPageLink-NavLink"] p {{
-    color: {FOREST} !important;
+    color: {PRIMARY} !important;
     font-weight: 600 !important;
-    font-size: 0.92rem !important;
 }}
 [data-testid="stPageLink"] a:hover p,
 [data-testid="stPageLink-NavLink"]:hover p {{
-    color: {MOSS} !important;
+    color: {PRIMARY_HOVER} !important;
     text-decoration: underline;
-}}
-
-/* Black link wrapper */
-.black-link [data-testid="stPageLink"] a p,
-.black-link [data-testid="stPageLink-NavLink"] p {{
-    color: {BLACK} !important;
-    font-weight: 700 !important;
-}}
-.black-link [data-testid="stPageLink"] a:hover p,
-.black-link [data-testid="stPageLink-NavLink"]:hover p {{
-    color: {BLACK_HOVER} !important;
-    text-decoration: underline;
-}}
-
-/* Forgot password wrapper */
-.forgot-link [data-testid="stPageLink"] {{
-    display: flex;
-    justify-content: flex-end;
-}}
-.forgot-link [data-testid="stPageLink"] a p,
-.forgot-link [data-testid="stPageLink-NavLink"] p {{
-    color: {FOREST} !important;
-    font-weight: 600 !important;
-}}
-.forgot-link [data-testid="stPageLink"] a:hover p,
-.forgot-link [data-testid="stPageLink-NavLink"]:hover p {{
-    color: {MOSS} !important;
-    text-decoration: underline;
-}}
-
-/* Receipt card */
-.groc-receipt {{
-    background-color: {SURFACE};
-    border: 1px solid {LINE};
-    border-radius: 4px;
-    padding: 1.6rem;
-    box-shadow: 6px 6px 0 {SAGE};
-}}
-.groc-receipt-title {{
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
-    color: {FOREST};
-    font-size: 1.1rem;
-    border-bottom: 1px dashed {LINE};
-    padding-bottom: 0.6rem;
-    margin-bottom: 0.8rem;
-}}
-.groc-receipt-item {{
-    display: flex;
-    justify-content: space-between;
-    padding: 0.3rem 0;
-    font-size: 0.92rem;
-}}
-.groc-receipt-item .status-done {{ color: {MOSS}; font-weight: 500; }}
-.groc-receipt-item .status-pending {{ color: {GOLD}; font-weight: 500; }}
-.groc-receipt-total {{
-    margin-top: 0.9rem;
-    padding-top: 0.7rem;
-    border-top: 1px dashed {LINE};
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}}
-.groc-receipt-total .amount {{
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
-    color: {GOLD};
-    font-size: 1.2rem;
-}}
-
-/* Feature card */
-.feature-card {{
-    background: {SURFACE};
-    border: 1px solid {LINE};
-    border-radius: 4px;
-    padding: 1.6rem 1.2rem 1.4rem;
-}}
-.feature-card h4 {{
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 1rem;
-    color: {INK};
-    margin-bottom: 0.25rem;
-}}
-.feature-card p {{
-    font-size: 0.88rem;
-    color: {INK_MUTED};
-    line-height: 1.5;
 }}
 </style>
 """
@@ -328,30 +318,8 @@ def top_nav():
         """
         <div class="groc-nav" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
-                <div class="groc-logo">GrocEase</div>
+                <div class="groc-logo">🛒 GrocEase</div>
                 <div class="groc-tagline">Shop together. Split smarter.</div>
-            </div>
-            <div style="display:flex; gap:8px; align-items:center;">
-                <button onclick="window.history.back()" title="Go Back" style="
-                    background: #FFFFFF; color: #1F4C3D; border: 1.5px solid #C3D6C6;
-                    border-radius: 50%; width: 32px; height: 32px; cursor: pointer;
-                    display: inline-flex; align-items: center; justify-content: center;
-                    font-size: 16px; font-weight: 700; transition: all 0.15s ease;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.06);"
-                    onmouseover="this.style.background='#E7EFE6'; this.style.borderColor='#1F4C3D';"
-                    onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#C3D6C6';">
-                    ‹
-                </button>
-                <button onclick="window.history.forward()" title="Go Forward" style="
-                    background: #FFFFFF; color: #1F4C3D; border: 1.5px solid #C3D6C6;
-                    border-radius: 50%; width: 32px; height: 32px; cursor: pointer;
-                    display: inline-flex; align-items: center; justify-content: center;
-                    font-size: 16px; font-weight: 700; transition: all 0.15s ease;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.06);"
-                    onmouseover="this.style.background='#E7EFE6'; this.style.borderColor='#1F4C3D';"
-                    onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#C3D6C6';">
-                    ›
-                </button>
             </div>
         </div>
         """,

@@ -54,7 +54,7 @@ if not st.session_state.splash_completed:
             #splash {
                 position: fixed;
                 top: 0; left: 0; width: 100vw; height: 100vh;
-                background: #1F4C3D;
+                background: #5C0203;
                 z-index: 100000;
                 display: flex; 
                 flex-direction: column;
@@ -65,7 +65,7 @@ if not st.session_state.splash_completed:
             .splash-content { 
                 position: relative; 
                 text-align: center; 
-                color: #F6F2E9; 
+                color: #FFFFFF; 
                 width: 100%;
                 max-width: 600px;
                 margin: 0 auto;
@@ -99,37 +99,37 @@ if not st.session_state.splash_completed:
             .brand-text { 
                 font-family: 'Fraunces', Georgia, serif; 
                 font-size: 3.5rem; 
-                font-weight: 700; 
+                font-weight: 800; 
                 margin-top: 1.5rem; 
                 display: block !important;
                 visibility: visible !important;
                 transform: scale(0); 
                 animation: textBounce 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 1.1s forwards; 
-                color: #F6F2E9 !important; 
+                color: #FFFFFF !important; 
             }
             @keyframes textBounce { 
-                0% { transform: scale(0); }
+                0% { transform: scale(0); } 
                 60% { transform: scale(1.1); } 
                 100% { transform: scale(1); } 
             }
             .tagline { 
-                font-family: 'Inter', sans-serif; 
+                font-family: 'Plus Jakarta Sans', sans-serif; 
                 font-size: 1.1rem; 
                 opacity: 0; 
                 margin-top: 0.5rem;
                 animation: fadeUp 0.6s ease 1.3s forwards; 
-                color: #E7EFE6 !important; 
+                color: #D9C4B1 !important; 
             }
             @keyframes fadeUp { 
                 0% { opacity: 0; transform: translateY(10px); } 
-                100% { opacity: 0.8; transform: translateY(0); } 
+                100% { opacity: 0.9; transform: translateY(0); } 
             }
         </style>
         <div id="splash">
             <div class="splash-content">
                 <div style="position: relative; display: inline-block; width: 100px; height: 100px;">
                     <span class="cart">🛒</span>
-                    <span class="apple">🍏</span>
+                    <span class="apple">🍎</span>
                 </div>
                 <h1 class="brand-text">GrocEase</h1>
                 <div class="tagline">Shop together. Split smarter.</div>
@@ -201,10 +201,7 @@ with right:
             st.session_state.login_show_pw = not show_pw
             st.rerun()
 
-    st.markdown(
-        '<p style="text-align:right; margin-top:-0.4rem;"><a href="#" style="color:#A97A1F; font-weight:500; font-size:0.9rem;">Forgot Password?</a></p>',
-        unsafe_allow_html=True,
-    )
+    st.page_link("pages/04_Forgot_Password.py", label="Forgot Password?")
 
     st.write("")
     login_clicked = st.button("Login", type="primary", use_container_width=True)
@@ -213,7 +210,7 @@ with right:
     st.write(" ")
     left_msg_col, right_link_col = st.columns([1.1, 2])
     with left_msg_col:
-        st.markdown('<p style="text-align:right; margin-top:0.35rem; font-size:0.95rem; color:#20261F;">New here?</p>', unsafe_allow_html=True)
+        st.markdown('<p style="text-align:right; margin-top:0.35rem; font-size:0.95rem; color:#372713; font-weight:500;">New here?</p>', unsafe_allow_html=True)
     with right_link_col:
         st.page_link("pages/02_Create_Account.py", label="Create Account")
 

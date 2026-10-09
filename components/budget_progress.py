@@ -27,22 +27,22 @@ def render_budget_progress(budget: dict, current_spending: float):
 
     st.markdown(
         f"""
-        <div style="background:#FFFFFF; border:1px solid #D8D0BE; border-radius:6px;
-                    padding:1rem 1.2rem; margin-bottom:0.8rem;">
+        <div style="background:#FFFFFF; border:1px solid rgba(163, 150, 112, 0.35); border-radius:16px;
+                    padding:1.15rem 1.35rem; margin-bottom:0.85rem; box-shadow:0 4px 14px rgba(55, 39, 19, 0.03);">
             <div style="display:flex; justify-content:space-between; align-items:center;
-                        margin-bottom:0.5rem;">
-                <div style="font-weight:600; color:#20261F;">{budget['category']}</div>
-                <div style="font-size:0.82rem; color:{color}; font-weight:600;">{status_text}</div>
+                        margin-bottom:0.6rem;">
+                <div style="font-size:1.02rem; font-weight:700; color:#372713;">{budget['category']}</div>
+                <div style="font-size:0.82rem; color:{color}; font-weight:700; background:#FAF6F0; border:1px solid rgba(163,150,112,0.3); border-radius:12px; padding:2px 8px;">{status_text}</div>
             </div>
-            <div style="background:#F0F0F0; border-radius:4px; height:8px; overflow:hidden;">
+            <div style="background:#FAF6F0; border:1px solid rgba(163, 150, 112, 0.25); border-radius:8px; height:9px; overflow:hidden;">
                 <div style="background:{color}; width:{clamped_pct}%; height:100%;
-                            border-radius:4px; transition:width 0.3s ease;"></div>
+                            border-radius:8px; transition:width 0.3s ease;"></div>
             </div>
-            <div style="display:flex; justify-content:space-between; margin-top:0.5rem;
-                        font-size:0.8rem; color:#5B6459;">
-                <div>Spent: <strong style="color:#20261F;">{format_currency(current_spending)}</strong></div>
-                <div>Limit: <strong style="color:#20261F;">{format_currency(monthly_limit)}</strong></div>
-                <div>Remaining: <strong style="color:{color};">{format_currency(max(remaining, 0))}</strong></div>
+            <div style="display:flex; justify-content:space-between; margin-top:0.65rem;
+                        font-size:0.84rem; color:#6B5A47;">
+                <div>Spent: <strong style="color:#372713;">{format_currency(current_spending)}</strong></div>
+                <div>Limit: <strong style="color:#372713;">{format_currency(monthly_limit)}</strong></div>
+                <div>Remaining: <strong style="color:{color}; font-weight:700;">{format_currency(max(remaining, 0))}</strong></div>
             </div>
         </div>
         """,

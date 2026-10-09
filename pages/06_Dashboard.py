@@ -145,11 +145,11 @@ with left_col:
             pending_in_room = sum(1 for i in all_items if i["roomId"] == room["id"] and i["status"] == "pending")
             st.markdown(
                 f"""
-                <div style="background:#FFFFFF; border:1px solid #D8D0BE; border-left:4px solid #1F4C3D;
-                            border-radius:6px; padding:0.9rem 1.2rem; margin-bottom:0.6rem;">
-                    <div style="font-weight:600; color:#20261F;">{room['name']}</div>
-                    <div style="font-size:0.8rem; color:#5B6459; margin-top:0.2rem;">
-                        Code: <code>{room['code']}</code> &nbsp;|&nbsp;
+                <div style="background:#FFFFFF; border:1px solid rgba(163, 150, 112, 0.35); border-left:4px solid #5C0203;
+                            border-radius:16px; padding:1.1rem 1.3rem; margin-bottom:0.75rem; box-shadow:0 4px 14px rgba(55, 39, 19, 0.04);">
+                    <div style="font-weight:700; color:#372713; font-size:1.02rem;">{room['name']}</div>
+                    <div style="font-size:0.82rem; color:#6B5A47; margin-top:0.3rem;">
+                        Code: <code style="background:#FAF6F0; border:1px solid #A39670; border-radius:8px; padding:2px 6px; color:#5C0203; font-weight:700;">{room.get('code','')}</code> &nbsp;|&nbsp;
                         {pending_in_room} pending item{"s" if pending_in_room != 1 else ""}
                     </div>
                 </div>
@@ -168,10 +168,11 @@ with left_col:
             room_name = next((r["name"] for r in my_rooms if r["id"] == item["roomId"]), "—")
             st.markdown(
                 f"""
-                <div style="display:flex; justify-content:space-between; align-items:center;
-                            padding:0.5rem 0.8rem; border-bottom:1px solid #F0F0F0;">
-                    <div style="font-size:0.92rem;">🥛 {item['itemName']} ×{item['quantity']}</div>
-                    <div style="font-size:0.78rem; color:#5B6459;">{room_name}</div>
+                <div style="background:#FFFFFF; border:1px solid rgba(163, 150, 112, 0.25); border-radius:12px;
+                            padding:0.65rem 1rem; margin-bottom:0.45rem; display:flex; justify-content:space-between; align-items:center;
+                            box-shadow:0 2px 6px rgba(55, 39, 19, 0.02);">
+                    <div style="font-size:0.92rem; font-weight:600; color:#372713;">🛒 {item['itemName']} <span style="color:#5C0203; font-weight:700;">×{item['quantity']}</span></div>
+                    <div style="font-size:0.78rem; color:#6B5A47; background:#FAF6F0; border-radius:8px; padding:2px 8px;">{room_name}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -193,17 +194,18 @@ with right_col:
         for b in budgets:
             spent = spending_by_cat.get(b["category"], 0.0)
             pct = (spent / b["monthlyLimit"] * 100) if b["monthlyLimit"] > 0 else 0
-            color = "#9C4B3E" if pct >= 100 else ("#A97A1F" if pct >= 80 else "#1F4C3D")
+            color = "#5C0203" if pct >= 100 else ("#A39670" if pct >= 80 else "#4D4828")
             st.markdown(
                 f"""
-                <div style="margin-bottom:0.6rem;">
-                    <div style="display:flex; justify-content:space-between; font-size:0.85rem;
-                                color:#20261F; margin-bottom:3px;">
+                <div style="background:#FFFFFF; border:1px solid rgba(163, 150, 112, 0.3); border-radius:14px;
+                            padding:0.85rem 1.1rem; margin-bottom:0.7rem; box-shadow:0 2px 6px rgba(55,39,19,0.02);">
+                    <div style="display:flex; justify-content:space-between; font-size:0.88rem; font-weight:600;
+                                color:#372713; margin-bottom:6px;">
                         <span>{b['category']}</span>
-                        <span style="color:{color};">{format_currency(spent)} / {format_currency(b['monthlyLimit'])}</span>
+                        <span style="color:{color}; font-weight:700;">{format_currency(spent)} / {format_currency(b['monthlyLimit'])}</span>
                     </div>
-                    <div style="background:#F0F0F0; border-radius:4px; height:7px; overflow:hidden;">
-                        <div style="background:{color}; width:{min(pct, 100):.0f}%; height:100%; border-radius:4px;"></div>
+                    <div style="background:#FAF6F0; border:1px solid rgba(163, 150, 112, 0.25); border-radius:8px; height:8px; overflow:hidden;">
+                        <div style="background:{color}; width:{min(pct, 100):.0f}%; height:100%; border-radius:8px;"></div>
                     </div>
                 </div>
                 """,

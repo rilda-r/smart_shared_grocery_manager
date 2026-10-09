@@ -43,101 +43,120 @@ _SIDEBAR_CSS = """
 /* Hide Streamlit's auto-generated multipage nav */
 [data-testid="stSidebarNav"] { display: none !important; }
 
-/* Sidebar base */
+/* Sleek vertical sidebar panel */
 [data-testid="stSidebar"] {
-    background-color: #1F4C3D !important;
-    min-width: 230px !important;
+    background-color: #2B1D0F !important;
+    background-image: linear-gradient(180deg, #2B1D0F 0%, #372713 100%) !important;
+    border-right: 1.5px solid rgba(163, 150, 112, 0.25) !important;
+    min-width: 250px !important;
+    box-shadow: 4px 0 24px rgba(43, 29, 15, 0.2) !important;
 }
 [data-testid="stSidebar"] * {
-    color: #F6F2E9 !important;
+    color: #F5ECE3 !important;
 }
-
-
 
 /* Sidebar logo */
 .sb-logo {
     font-family: 'Fraunces', Georgia, serif;
-    font-size: 1.55rem;
-    font-weight: 700;
-    color: #F6F2E9;
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #FFFFFF !important;
     letter-spacing: -0.02em;
-    margin-bottom: 0.1rem;
+    margin-bottom: 0.15rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 .sb-tagline {
-    font-size: 0.76rem;
-    color: #C3D6C6;
-    margin-bottom: 1.2rem;
+    font-size: 0.78rem;
+    color: #D9C4B1 !important;
+    font-weight: 500;
+    margin-bottom: 1.3rem;
+    letter-spacing: 0.02em;
 }
 .sb-divider {
     border: none;
-    border-top: 1px solid rgba(255,255,255,0.15);
-    margin: 0.8rem 0;
+    border-top: 1px solid rgba(217, 196, 177, 0.18);
+    margin: 0.9rem 0;
 }
 .sb-section-label {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #C3D6C6;
-    margin: 0.9rem 0 0.3rem 0;
+    color: #A39670 !important;
+    margin: 1.1rem 0 0.45rem 0.4rem;
 }
 .sb-user-chip {
-    background: rgba(255,255,255,0.1);
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 0.83rem;
-    font-weight: 600;
-    color: #F6F2E9;
-    display: inline-block;
-    margin-bottom: 0.4rem;
+    background: #D9C4B1 !important;
+    border-radius: 24px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #372713 !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 0.3rem;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+}
+.sb-user-chip * {
+    color: #372713 !important;
 }
 
-/* Sidebar selectbox styling for rooms */
-[data-testid="stSidebar"] [data-baseweb="select"] {
-    background-color: rgba(255,255,255,0.08) !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
-    border-radius: 6px !important;
+/* Nav links in sidebar (pill items with micro-interactions) */
+[data-testid="stSidebar"] [data-testid="stPageLink"] {
+    margin-bottom: 3px !important;
 }
-[data-testid="stSidebar"] [data-baseweb="select"] * {
-    color: #F6F2E9 !important;
-}
-
-/* Nav links in sidebar */
 [data-testid="stSidebar"] [data-testid="stPageLink"] a,
 [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"] {
-    color: #E7EFE6 !important;
+    color: #E8DDD2 !important;
     font-size: 0.92rem !important;
     font-weight: 500 !important;
-    padding: 6px 0 !important;
-    display: block;
+    padding: 8px 14px !important;
+    display: flex !important;
+    align-items: center !important;
     text-decoration: none !important;
-    border-radius: 4px;
+    border-radius: 12px !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 [data-testid="stSidebar"] [data-testid="stPageLink"] a p,
 [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"] p {
-    color: #E7EFE6 !important;
+    color: #E8DDD2 !important;
     font-weight: 500 !important;
+    margin: 0 !important;
+    transition: color 0.15s ease !important;
+}
+[data-testid="stSidebar"] [data-testid="stPageLink"] a:hover,
+[data-testid="stSidebar"] [data-testid="stPageLink-NavLink"]:hover {
+    background-color: rgba(217, 196, 177, 0.14) !important;
+    transform: translateX(4px) !important;
 }
 [data-testid="stSidebar"] [data-testid="stPageLink"] a:hover p,
 [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"]:hover p {
     color: #FFFFFF !important;
-    text-decoration: underline !important;
+    font-weight: 600 !important;
 }
 
-/* Sidebar buttons */
+/* Sidebar action buttons (e.g. Logout) */
 [data-testid="stSidebar"] .stButton > button {
-    background-color: transparent !important;
-    color: #F6F2E9 !important;
-    border: 1px solid rgba(255,255,255,0.25) !important;
-    border-radius: 6px !important;
-    font-size: 0.85rem !important;
-    padding: 0.4rem 0.8rem !important;
+    background-color: rgba(217, 196, 177, 0.08) !important;
+    color: #E8DDD2 !important;
+    border: 1.5px solid rgba(163, 150, 112, 0.35) !important;
+    border-radius: 14px !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    padding: 0.55rem 1rem !important;
     width: 100%;
-    text-align: left;
-    margin-top: 0.3rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    box-shadow: none !important;
+    transition: all 0.2s ease !important;
 }
 [data-testid="stSidebar"] .stButton > button:hover {
-    background-color: rgba(255,255,255,0.1) !important;
+    background-color: #5C0203 !important;
+    border-color: #5C0203 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(92, 2, 3, 0.3) !important;
+    transform: translateY(-1px);
 }
 </style>
 """

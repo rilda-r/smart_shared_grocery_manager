@@ -52,7 +52,7 @@ with mid:
     full_name = st.text_input("Full Name", placeholder="e.g. Ananya Rao")
     email = st.text_input("Email Address", placeholder="you@example.com")
     st.markdown(
-        '<p style="font-size:0.83rem; color:#A97A1F; margin-top:-0.4rem; margin-bottom:1rem; font-weight:500;">'
+        '<p style="font-size:0.83rem; color:#5C0203; margin-top:-0.4rem; margin-bottom:1rem; font-weight:600;">'
         '⚠️ Email address cannot be changed after account creation.'
         '</p>',
         unsafe_allow_html=True,
@@ -79,7 +79,7 @@ with mid:
     # Live password strength indicator
     if password:
         checks = password_strength(password)
-        st.markdown('<p style="font-size:0.95rem; font-weight:600; margin-top:0.8rem; color:#20261F;">Password requirements</p>', unsafe_allow_html=True)
+        st.markdown('<p style="font-size:0.95rem; font-weight:700; margin-top:0.8rem; color:#372713;">Password requirements</p>', unsafe_allow_html=True)
         labels = {
             "length": "At least 8 characters",
             "uppercase": "Uppercase letter",
@@ -91,17 +91,17 @@ with mid:
         for i, key in enumerate(labels):
             ok = checks[key]
             icon = "✓" if ok else "✗"
-            color = "#1F4C3D" if ok else "#9C4B3E"
+            color = "#4D4828" if ok else "#5C0203"
             with rows[i % 2]:
                 st.markdown(
-                    f'<div style="color:{color}; font-weight: 500; font-size: 0.88rem; padding: 0.2rem 0;">{icon} {labels[key]}</div>',
+                    f'<div style="color:{color}; font-weight: 600; font-size: 0.88rem; padding: 0.2rem 0;">{icon} {labels[key]}</div>',
                     unsafe_allow_html=True,
                 )
 
     st.write("")
     create_clicked = st.button("Create Account", type="primary", use_container_width=True)
 
-    st.markdown("<p style='text-align:center; margin-top:1rem; font-size:0.9rem;'>Already have an account?</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; margin-top:1rem; font-size:0.92rem; color:#372713; font-weight:500;'>Already have an account?</p>", unsafe_allow_html=True)
     st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
     st.page_link("pages/01_Login.py", label="Login to your account")
     st.markdown('</div>', unsafe_allow_html=True)

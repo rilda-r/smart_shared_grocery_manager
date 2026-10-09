@@ -70,9 +70,9 @@ if not room_id:
 col_sub, col_sync = st.columns([3, 1])
 with col_sub:
     st.markdown(
-        f"<p style='color:#5B6459; margin-top:-0.8rem;'>"
+        f"<p style='color:#6B5A47; margin-top:-0.8rem;'>"
         f"Viewing items in: <strong>{room_name}</strong> &nbsp;"
-        f"<span style='background:#E7EFE6; color:#1F4C3D; padding:2px 8px; border-radius:12px; font-size:0.78rem; font-weight:600;'>"
+        f"<span style='background:#FAF6F0; color:#4D4828; border:1px solid #A39670; padding:3px 10px; border-radius:12px; font-size:0.78rem; font-weight:700;'>"
         f"🟢 Supabase Live Sync</span></p>",
         unsafe_allow_html=True,
     )
@@ -80,7 +80,7 @@ with col_sync:
     if st.button("🔄 Live Sync", help="Fetch latest live grocery updates from Supabase"):
         st.rerun()
 
-st.markdown("<hr style='border-color:#D8D0BE; margin:0.2rem 0 1.2rem 0;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border:none; border-top:1px solid rgba(163, 150, 112, 0.35); margin:0.2rem 0 1.2rem 0;'>", unsafe_allow_html=True)
 
 
 # ── Helper to fetch room items from Supabase ──────────────────────────────────

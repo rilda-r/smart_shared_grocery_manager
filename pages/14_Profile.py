@@ -55,10 +55,10 @@ with left_col:
     initial = (nickname[0] if nickname else actual_name[0]).upper()
     st.markdown(
         f"""
-        <div style="background:#1F4C3D; color:#F6F2E9; border-radius:50%;
-                    width:90px; height:90px; display:flex; align-items:center;
+        <div style="background:#5C0203; color:#FFFFFF; border-radius:50%;
+                    width:92px; height:92px; display:flex; align-items:center;
                     justify-content:center; font-family:'Fraunces',Georgia,serif;
-                    font-size:2.5rem; font-weight:700; margin-bottom:1rem; box-shadow:0 4px 12px rgba(31,76,61,0.2);">
+                    font-size:2.6rem; font-weight:700; margin-bottom:1rem; box-shadow:0 6px 18px rgba(92,2,3,0.25);">
             {initial}
         </div>
         """,
@@ -68,10 +68,10 @@ with left_col:
     st.markdown(
         f"""
         <div style="margin-bottom:0.8rem;">
-            <div style="font-family:'Fraunces',Georgia,serif; font-size:1.45rem; font-weight:700;
-                        color:#1F4C3D;">{nickname}</div>
-            <div style="font-size:0.9rem; color:#20261F; font-weight:500;">Legal Name: {actual_name}</div>
-            <div style="font-size:0.85rem; color:#5B6459;">{email}</div>
+            <div style="font-family:'Fraunces',Georgia,serif; font-size:1.55rem; font-weight:700;
+                        color:#5C0203;">{nickname}</div>
+            <div style="font-size:0.92rem; color:#372713; font-weight:600;">Legal Name: {actual_name}</div>
+            <div style="font-size:0.85rem; color:#6B5A47;">{email}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -139,7 +139,11 @@ with right_col:
         unsafe_allow_html=True,
     )
 
-    with st.form("password_reset_form"):
+    if "pw_reset_success_msg" in st.session_state:
+        st.success(st.session_state.pop("pw_reset_success_msg"))
+
+    pw_form_ver = st.session_state.get("pw_form_ver", 0)
+    with st.form(f"password_reset_form_{pw_form_ver}"):
         curr_pw = st.text_input("Current Password", type="password", placeholder="Enter current password")
         new_pw = st.text_input("New Password", type="password", placeholder="Create new strong password")
         conf_pw = st.text_input("Confirm New Password", type="password", placeholder="Re-enter new password")
@@ -163,7 +167,10 @@ with right_col:
             else:
                 hashed = hash_password(new_pw)
                 update_password(email, hashed)
-                st.success("✅ Password successfully updated!")
+                # Increment key so inputs clear completely on successful update
+                st.session_state["pw_form_ver"] = pw_form_ver + 1
+                st.session_state["pw_reset_success_msg"] = "✅ Password successfully updated!"
+                st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -171,9 +178,9 @@ with right_col:
     st.markdown("### ⚠️ Danger Zone")
     st.markdown(
         """
-        <div style="background:#FFF5F5; border:1px solid #ECC9C9; border-radius:6px; padding:1.2rem; margin-bottom:1rem;">
-            <div style="font-weight:600; color:#9C4B3E; margin-bottom:0.3rem;">Permanent Account Deletion</div>
-            <div style="font-size:0.88rem; color:#5B6459;">
+        <div style="background:#FFF6F6; border:1.5px solid rgba(92,2,3,0.3); border-radius:18px; padding:1.3rem; margin-bottom:1rem; box-shadow:0 4px 14px rgba(92,2,3,0.04);">
+            <div style="font-weight:700; color:#5C0203; margin-bottom:0.3rem;">Permanent Account Deletion</div>
+            <div style="font-size:0.88rem; color:#6B5A47;">
                 Deleting your account will permanently remove your profile, created rooms, room memberships,
                 payments, personal expenses, and budgets with cascading deletion.
             </div>

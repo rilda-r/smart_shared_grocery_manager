@@ -70,11 +70,11 @@ with tab_create:
                     st.success(f"✅ Room **{created_room['name']}** created successfully!")
                     st.markdown(
                         f"""
-                        <div style="background:#E7EFE6; border:1px solid #C3D6C6; border-radius:6px;
-                                    padding:1rem 1.4rem; margin-top:0.5rem;">
-                            <div style="font-size:0.85rem; color:#5B6459; margin-bottom:0.3rem;">Share this secret code with your group to join:</div>
-                            <div style="font-family:'Fraunces',serif; font-size:2rem; font-weight:700;
-                                        color:#1F4C3D; letter-spacing:0.08em;">{room_display_code}</div>
+                        <div style="background:#FAF6F0; border:1px solid #A39670; border-radius:16px;
+                                    padding:1.1rem 1.4rem; margin-top:0.5rem; box-shadow:0 4px 12px rgba(55,39,19,0.03);">
+                            <div style="font-size:0.85rem; color:#6B5A47; margin-bottom:0.3rem;">Share this secret code with your group to join:</div>
+                            <div style="font-family:'Fraunces',Georgia,serif; font-size:2.2rem; font-weight:700;
+                                        color:#5C0203; letter-spacing:0.08em;">{room_display_code}</div>
                         </div>
                         """,
                         unsafe_allow_html=True,
@@ -148,8 +148,8 @@ else:
                 created_val = format_datetime(room["createdAt"]) if room.get("createdAt") else "Recent"
                 st.markdown(
                     f"""
-                    <div style="font-size:0.88rem; color:#5B6459; margin-bottom:0.8rem;">
-                        <strong>Room Code:</strong> <code>{code_val}</code> &nbsp;|&nbsp;
+                    <div style="font-size:0.88rem; color:#6B5A47; margin-bottom:0.8rem;">
+                        <strong>Room Code:</strong> <code style="background:#FAF6F0; border:1px solid #A39670; border-radius:8px; padding:2px 8px; color:#5C0203; font-weight:700;">{code_val}</code> &nbsp;|&nbsp;
                         <strong>Your Role:</strong> {badge_html("creator")} &nbsp;|&nbsp;
                         <strong>Created:</strong> {created_val}
                     </div>
@@ -194,8 +194,8 @@ else:
                 created_val = format_datetime(room["createdAt"]) if room.get("createdAt") else "Recent"
                 st.markdown(
                     f"""
-                    <div style="font-size:0.88rem; color:#5B6459; margin-bottom:0.8rem;">
-                        <strong>Room Code:</strong> <code>{code_val}</code> &nbsp;|&nbsp;
+                    <div style="font-size:0.88rem; color:#6B5A47; margin-bottom:0.8rem;">
+                        <strong>Room Code:</strong> <code style="background:#FAF6F0; border:1px solid #A39670; border-radius:8px; padding:2px 8px; color:#5C0203; font-weight:700;">{code_val}</code> &nbsp;|&nbsp;
                         <strong>Your Role:</strong> {badge_html('member')} &nbsp;|&nbsp;
                         <strong>Created:</strong> {created_val}
                     </div>
