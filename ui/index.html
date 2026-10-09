@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GrocEase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css"></head><body>
+<div id="landing">
+<section class="hero-track" id="track"><div class="hero" id="hero">
+ <i class="shape s1" data-v=".25"></i><i class="shape s2" data-v=".5"></i><i class="shape s3" data-v=".35"></i>
+ <h1 class="mark" id="mark" aria-label="GrocEase">GrocEase</h1>
+ <div class="frag f1" data-v=".9"><span class="chk">✓</span> Oat milk</div>
+ <div class="frag f2" data-v="1.4"><b>Rice 5 kg</b> · Asha</div>
+ <div class="frag f3" data-v="1.1"><u></u><u></u><u></u><em>₹ 640</em></div>
+ <div class="frag f4" data-v="1.7"><span class="chk">✓</span> Eggs 🔒</div>
+ <p class="hint" id="hint">Scroll to step inside</p>
+</div></section>
+<section class="auth" id="auth"><div class="panel">
+ <div class="tabs"><button class="on" data-t="in">Sign In</button><button data-t="up">Create Household Account</button></div>
+ <form id="form" onsubmit="return false">
+  <h2 id="ftitle">Welcome back</h2>
+  <label id="hname" hidden>Household name<input placeholder="Flat 4B"></label>
+  <label>Email<input type="email" value="asha@flat4b.com"></label>
+  <label>Password<input type="password" value="groceries"></label>
+  <button class="go" id="login">Login</button>
+ </form></div></section>
+</div>
+<div id="app" hidden>
+<header class="top"><b class="brand">GrocEase</b>
+ <nav><a class="on">Basket</a><a>Ledger</a><a>Budget</a></nav>
+ <input class="search" placeholder="Search items, rooms, people"></header>
+<main class="grid">
+ <aside class="left">
+  <div class="me"><span class="av">A</span><div><b>Asha</b><small>Verified ✓</small></div></div>
+  <div class="hist"><button aria-label="Back">‹</button><button aria-label="Forward">›</button></div>
+  <h3>Flat 4B</h3>
+  <ol class="room"><li class="on">Asha<small>Admin</small></li><li>Ravi<small>Joined Mon</small></li><li>Meera<small>Joined Mon</small></li><li>Dev<small>Joined Wed</small></li></ol>
+ </aside>
+ <section class="center">
+  <article class="card" data-k="basket"><h2>Active Shared Basket</h2><ul id="basket"></ul></article>
+  <article class="card" data-k="dup"><h2>Duplicate Prevention</h2>
+   <div class="intercept"><p><b>Ravi</b> is adding <b>Milk</b>, but Asha already has it in the basket.</p>
+   <div class="qty"><button id="minus" aria-label="Decrease">−</button><output id="q">1</output><button id="plus" aria-label="Increase">+</button><span>Add to Asha's 2 L instead</span></div></div></article>
+  <article class="card" data-k="ledger"><h2>Locked Purchase Ledger</h2><ul id="ledger"><li class="lk"><span>Eggs, 12</span><small>Meera · ₹ 96</small><span class="lock">🔒</span></li></ul></article>
+ </section>
+ <aside class="right">
+  <div class="qr"><div id="qr"></div><div><b>Invite to Flat 4B</b><small>grocease.app/join/4B-X7Q</small></div></div>
+  <div class="insp"><h3 id="itl">Room metrics</h3>
+   <div class="stat"><small>Spent</small><b id="spent">0</b></div>
+   <div class="stat"><small>Budget</small><b id="budget">₹ 2,000</b></div>
+   <div class="bar"><i id="fill"></i></div><p id="ihint">Select a card to inspect it.</p></div>
+  <div class="insp rose"><h3>Target vs actual</h3><table><tr><td>Week 1</td><td>₹ 500</td><td>₹ 460</td></tr><tr><td>Week 2</td><td>₹ 500</td><td>₹ 540</td></tr><tr><td>Week 3</td><td>₹ 500</td><td id="w3">₹ 96</td></tr></table></div>
+ </aside>
+</main></div>
+<script src="app.js"></script></body></html>
