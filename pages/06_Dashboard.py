@@ -53,6 +53,7 @@ my_rooms = [
         "id": r["id"],
         "name": r["name"],
         "role": r.get("role", "member"),
+        "code": r.get("secret_code") or r.get("code", ""),
     }
     for r in db_rooms
 ]
