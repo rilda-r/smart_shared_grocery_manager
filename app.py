@@ -96,7 +96,9 @@ if not st.session_state.splash_completed:
                 70% { top: -20px; } 
                 100% { top: -12px; opacity: 1; } 
             }
-            .brand-text { 
+            #splash .brand-text,
+            #splash h1.brand-text,
+            div.brand-text { 
                 font-family: 'Fraunces', Georgia, serif; 
                 font-size: 3.5rem; 
                 font-weight: 800; 
@@ -105,7 +107,9 @@ if not st.session_state.splash_completed:
                 visibility: visible !important;
                 transform: scale(0); 
                 animation: textBounce 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 1.1s forwards; 
-                color: #FFFFFF !important; 
+                color: #FFF8EE !important; 
+                -webkit-text-fill-color: #FFF8EE !important;
+                letter-spacing: -0.02em;
             }
             @keyframes textBounce { 
                 0% { transform: scale(0); } 
@@ -131,14 +135,14 @@ if not st.session_state.splash_completed:
                     <span class="cart">🛒</span>
                     <span class="apple">🍎</span>
                 </div>
-                <h1 class="brand-text">GrocEase</h1>
+                <div class="brand-text" style="color: #FFF8EE !important; -webkit-text-fill-color: #FFF8EE !important;">GrocEase</div>
                 <div class="tagline">Shop together. Split smarter.</div>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    time.sleep(0.4)
+    time.sleep(2.5)
     st.session_state.splash_completed = True
     st.rerun()
 
