@@ -24,8 +24,8 @@ from services.item_matching_service import (
     match_receipt_items,
 )
 from services.receipt_split_service import (
-    split_amount_proportionally,
-    split_amount_equally,
+    _split_proportionally as split_amount_proportionally,
+    _split_equally as split_amount_equally,
     calculate_receipt_split,
 )
 
@@ -255,3 +255,107 @@ def test_tesseract_raw_parser_edge_cases():
     assert res["tax"] == Decimal("5.00")
     assert res["discount"] == Decimal("10.00")
     assert res["total"] == Decimal("85.00")
+
+
+# ── 7. Fresh Basket GST receipt: parser, Gemini retry, error surfacing, per-item split ──
+
+FRESH_BASKET_TEXT = """FRESH BASKET SUPERMARKET
+42, Anna Salai, Guindy, Chennai - 600032
+Ph: +91 98765 43210 | care@freshbasket.example
+GSTIN: 33ABCDE1234F1Z5 FSSAI: 10012345678901
+Receipt ID : RCPT-20261016-0042
+Bill No : FB/0042/26-27
+Date : 16-Oct-2026
+ITEM QTY RATE AMOUNT
+Milk (1 L)
+ID:ITM-1001 HSN:0401 GST:0%
+1 56.00 56.00
+Ice cream
+ID:ITM-1002 HSN:2105 GST:18%
+4 120.00 480.00
+Item discount (10%) -48.00
+Cake
+ID:ITM-1003 HSN:1905 GST:18%
+1 450.00 450.00
+Chocolate
+ID:ITM-1004 HSN:1806 GST:18%
+1 85.00 85.00
+Total Items: 4 Total Qty: 7
+Subtotal (MRP) 1071.00
+Item discounts -48.00
+Coupon ROOM5 (5%) -51.15
+Taxable value 971.85
+CGST 82.68
+SGST 82.68
+Total tax 165.36
+Round off -0.21
+NET PAYABLE (₹) ₹ 1137.00
+UPI Ref T2610161842XXXX
+"""
+
+
+def test_parse_fresh_basket_receipt():
+    from services.receipt_ocr_service import parse_receipt_text
+    d = parse_receipt_text(FRESH_BASKET_TEXT)
+    assert [i["name"] for i in d["items"]] == ["Milk (1 L)", "Ice cream", "Cake", "Chocolate"]
+    assert d["items"][1]["item_discount"] == Decimal("48.00")
+    assert d["items"][1]["gst_rate"] == Decimal("18")
+    assert (d["subtotal"], d["discount"], d["tax"], d["round_off"], d["total"]) == (
+        Decimal("1071.00"), Decimal("99.15"), Decimal("165.36"), Decimal("-0.21"), Decimal("1137.00"))
+    assert d["date"] == "2026-10-16"
+    ok, _, warn = validate_receipt_math(d["items"], d["tax"], d["discount"], d["other_charges"], d["total"], round_off=d["round_off"])
+    assert ok and warn == ""
+
+
+def test_gemini_failure_surfaces_error_and_falls_back(monkeypatch):
+    import services.receipt_ocr_service as svc
+    monkeypatch.setattr(svc, "get_gemini_api_key", lambda: "fake")
+    def boom(*a, **k):
+        raise ValueError("PermissionDenied: API key invalid")
+    monkeypatch.setattr(svc, "extract_with_gemini", boom)
+    monkeypatch.setattr(svc, "extract_pdf_text", lambda b: FRESH_BASKET_TEXT)
+    out = svc.process_receipt_file(b"%PDF-fake", "r.pdf")
+    assert out["engine"] == "pdf_text"
+    assert "API key invalid" in out["gemini_error"]
+    assert out["is_valid_math"] and out["total"] == Decimal("1137.00")
+
+
+def test_gemini_math_failure_retries_once(monkeypatch):
+    import services.receipt_ocr_service as svc
+    monkeypatch.setattr(svc, "get_gemini_api_key", lambda: "fake")
+    good = svc.parse_receipt_text(FRESH_BASKET_TEXT)
+    bad = dict(good, total=Decimal("165.36"))
+    calls = []
+    def fake(file_bytes, mime_type, api_key=None, feedback=None):
+        calls.append((mime_type, feedback))
+        return dict(bad) if feedback is None else dict(good)
+    monkeypatch.setattr(svc, "extract_with_gemini", fake)
+    out = svc.process_receipt_file(b"%PDF-fake", "r.pdf")
+    assert len(calls) == 2 and calls[0][0] == "application/pdf" and "Math mismatch" in calls[1][1]
+    assert out["engine"] == "gemini" and out["is_valid_math"] and out["total"] == Decimal("1137.00")
+
+
+def test_end_to_end_match_and_per_item_split_fresh_basket():
+    """Receipt -> match to shopping list -> per-item GST/discount split. Discount & GST must survive matching."""
+    from services.receipt_ocr_service import parse_receipt_text
+    d = parse_receipt_text(FRESH_BASKET_TEXT)
+    grocery = [
+        {"id": 1, "itemName": "Milk", "quantity": 1, "requestedBy": 1, "userId": 1},
+        {"id": 2, "itemName": "Ice cream", "quantity": 4, "requestedBy": 2, "userId": 2},
+        {"id": 3, "itemName": "Cake", "quantity": 1, "requestedBy": 2, "userId": 2},
+    ]
+    members = [{"user_id": 1, "display_name": "A"}, {"user_id": 2, "display_name": "B"}]
+    m = match_receipt_items(d["items"], grocery, members, shopper_user_id=1)
+    for row in m["matched_items"] + m["extra_items"]:
+        assert "gst_rate" in row and "item_discount" in row
+    coupon = d["discount"] - sum(i["item_discount"] for i in d["items"])
+    r = calculate_receipt_split(
+        m["matched_items"], m["extra_items"], d["tax"], d["discount"], d["other_charges"], d["total"],
+        1, [1, 2], {1: "A", 2: "B"}, coupon_discount=coupon, round_off=d["round_off"],
+    )
+    assert r["reconciled_sum"] == Decimal("1137.00")
+    rows = {x["name"]: x for x in r["allocated_rows"]}
+    assert rows["Ice cream"]["item_disc"] == Decimal("48.00")
+    assert rows["Milk (1 L)"]["gst_amt"] == Decimal("0.00")
+    assert abs(rows["Cake"]["final_row_amount"] - Decimal("504.45")) <= Decimal("0.10")
+    assert sum(x["final_row_amount"] for x in r["allocated_rows"]) == Decimal("1137.00")

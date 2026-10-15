@@ -628,6 +628,11 @@ elif step == 4:
         all_room_member_ids=room_member_ids,
         member_name_map=member_name_map,
         tax_split_mode=scan["tax_split_mode"],
+        coupon_discount=max(
+            Decimal("0.00"),
+            scan["discount"] - sum((to_decimal(i.get("item_discount", 0)) for i in scan["items"]), Decimal("0.00")),
+        ),
+        round_off=scan.get("round_off", Decimal("0.00")),
     )
 
     summaries = split_result["member_summaries"]
