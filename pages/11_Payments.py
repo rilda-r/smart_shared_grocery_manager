@@ -17,10 +17,15 @@ from utils.formatting import format_currency, format_datetime, badge_html
 from components.sidebar import render_sidebar
 from components.cards import render_metric_card, render_empty_state
 from components.payment_table import render_payment_table
+from database.database import (
+    get_room_payments_live,
+    settle_payment_live,
+    report_payment_live,
+)
 from mock.mock_api import (
-    get_payments,
-    settle_payment,
-    report_payment,
+    get_payments as mock_get_payments,
+    settle_payment as mock_settle_payment,
+    report_payment as mock_report_payment,
     get_bill,
     get_bill_items,
     calculate_bill_split,
@@ -28,6 +33,25 @@ from mock.mock_api import (
     get_room_members,
 )
 from mock.mock_data import get_username
+
+def get_payments(room_id):
+    live = get_room_payments_live(room_id)
+    if live:
+        return live
+    return mock_get_payments(room_id)
+
+def settle_payment(payment_id):
+    try:
+        settle_payment_live(payment_id)
+    except Exception:
+        mock_settle_payment(payment_id)
+
+def report_payment(payment_id):
+    try:
+        report_payment_live(payment_id)
+    except Exception:
+        mock_report_payment(payment_id)
+
 
 st.set_page_config(
     page_title="Payments — GrocEase",

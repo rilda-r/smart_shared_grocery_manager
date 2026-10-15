@@ -41,8 +41,10 @@ def render_payment_table(payments: list, current_user_id: int, on_settle=None, o
 
     for p in payments:
         row = st.columns([2, 2, 2, 2, 3, 2])
-        row[0].write(get_username(p["payerUserId"]))
-        row[1].write(get_username(p["payeeUserId"]))
+        payer_disp = p.get("payerName") or get_username(p["payerUserId"])
+        payee_disp = p.get("payeeName") or get_username(p["payeeUserId"])
+        row[0].write(payer_disp)
+        row[1].write(payee_disp)
         row[2].write(format_currency(p["amount"]))
         row[3].markdown(badge_html(p["paymentStatus"]), unsafe_allow_html=True)
         row[4].write(format_datetime(p["createdAt"]))

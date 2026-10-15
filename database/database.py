@@ -593,3 +593,58 @@ def reset_active_monthly_data(user_id: int) -> bool:
         return True
     except Exception:
         return False
+
+
+def get_room_payments_live(room_id: int) -> list:
+    """Fetch live payment debts for a room from Supabase PostgreSQL."""
+    if not room_id:
+        return []
+    try:
+        rows = query_all(
+            """
+            SELECT p.id, p.room_id, p.bill_id, p.receipt_id, p.payer_user_id, p.payee_user_id,
+                   p.amount, p.payment_status, p.created_at, p.settled_at, p.reported_at,
+                   COALESCE(NULLIF(pp.nickname, ''), NULLIF(up.nickname, ''), NULLIF(up.username, ''), NULLIF(up.full_name, ''), 'Member') AS payer_name,
+                   COALESCE(NULLIF(pe.nickname, ''), NULLIF(ue.nickname, ''), NULLIF(ue.username, ''), NULLIF(ue.full_name, ''), 'Member') AS payee_name
+            FROM payments p
+            JOIN users up ON up.id = p.payer_user_id
+            LEFT JOIN profiles pp ON pp.user_id = up.id
+            JOIN users ue ON ue.id = p.payee_user_id
+            LEFT JOIN profiles pe ON pe.user_id = ue.id
+            WHERE p.room_id = %s
+            ORDER BY p.created_at DESC, p.id DESC
+            """,
+            (int(room_id),),
+        )
+        return [
+            {
+                "id": r["id"],
+                "roomId": r["room_id"],
+                "billId": r.get("bill_id"),
+                "receiptId": r.get("receipt_id"),
+                "payerUserId": r["payer_user_id"],
+                "payeeUserId": r["payee_user_id"],
+                "payerName": r["payer_name"],
+                "payeeName": r["payee_name"],
+                "amount": float(r["amount"]),
+                "paymentStatus": r["payment_status"],
+                "createdAt": str(r.get("created_at") or ""),
+                "settledAt": str(r.get("settled_at") or ""),
+                "reportedAt": str(r.get("reported_at") or ""),
+            }
+            for r in rows
+        ]
+    except Exception:
+        return []
+
+
+def settle_payment_live(payment_id: int) -> bool:
+    """Mark a payment as settled in Supabase PostgreSQL."""
+    execute("UPDATE payments SET payment_status = 'settled', settled_at = %s WHERE id = %s", (datetime.utcnow(), int(payment_id)))
+    return True
+
+
+def report_payment_live(payment_id: int) -> bool:
+    """Mark a payment as reported in Supabase PostgreSQL."""
+    execute("UPDATE payments SET payment_status = 'reported', reported_at = %s WHERE id = %s", (datetime.utcnow(), int(payment_id)))
+    return True
