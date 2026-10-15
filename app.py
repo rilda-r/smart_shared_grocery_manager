@@ -54,7 +54,7 @@ if not st.session_state.splash_completed:
             #splash {
                 position: fixed;
                 top: 0; left: 0; width: 100vw; height: 100vh;
-                background: #5C0203;
+                background: #7A1F2B;
                 z-index: 100000;
                 display: flex; 
                 flex-direction: column;
@@ -118,7 +118,7 @@ if not st.session_state.splash_completed:
                 opacity: 0; 
                 margin-top: 0.5rem;
                 animation: fadeUp 0.6s ease 1.3s forwards; 
-                color: #D9C4B1 !important; 
+                color: #EADFCB !important; 
             }
             @keyframes fadeUp { 
                 0% { opacity: 0; transform: translateY(10px); } 
@@ -155,22 +155,19 @@ if st.session_state.get("logged_in", False):
     st.switch_page("pages/06_Dashboard.py")
 
 # ----------------- PHASE 3: LIVE MAIN LOGIN LAYOUT -----------------
-top_nav()
-
 left, right = st.columns([1, 1], gap="large")
 
 with left:
-    st.write("")
-    st.write("")
     st.markdown(
         """
-        <h1 style="font-size:2.8rem; margin-bottom: 0.5rem;">Welcome back</h1>
-        <p class="groc-muted" style="font-size:1.15rem;">Let's get your groceries sorted.</p>
+        <div style="padding:0.2rem 0 1.5rem 0; text-align:left;">
+            <div class="groc-logo" style="font-size:2.2rem; margin-bottom:0.1rem;">🛒 GrocEase</div>
+            <div class="groc-tagline" style="margin-bottom:2.2rem;">Shop together. Split smarter.</div>
+            <h1 style="font-size:2.8rem; margin:0 0 0.5rem 0; line-height:1.15;">Welcome back</h1>
+            <p class="groc-muted" style="font-size:1.15rem; margin:0 0 1.5rem 0;">Let's get your groceries sorted.</p>
+            <div style="font-size:2.8rem;">🛒 🥦 🥛 🍎</div>
+        </div>
         """,
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<div style="font-size:2.8rem; margin-top:1.5rem;">🛒 🥦 🥛 🍎</div>',
         unsafe_allow_html=True,
     )
 
@@ -178,43 +175,26 @@ with right:
     if "registration_success_message" in st.session_state:
         st.success(f"✅ {st.session_state.pop('registration_success_message')}")
 
-    st.markdown('<div class="groc-card">', unsafe_allow_html=True)
-    render_dev_mode_banner()
-    st.markdown("### Login", unsafe_allow_html=True)
-    st.write("")
-
-
-    email = st.text_input("Email Address", placeholder="you@example.com")
-
-    show_pw = st.session_state.get("login_show_pw", False)
-    pw_col, pw_toggle = st.columns([5, 1], gap="small")
-    with pw_col:
-        password = st.text_input(
-            "Password",
-            type="default" if show_pw else "password",
-            placeholder="Enter your password",
-        )
-    with pw_toggle:
+    with st.container(border=True):
+        render_dev_mode_banner()
+        st.markdown("### Login", unsafe_allow_html=True)
         st.write("")
+
+        email = st.text_input("Email Address", placeholder="you@example.com")
+        password = st.text_input("Password", type="password", placeholder="Enter your password")
+
+        st.page_link("pages/04_Forgot_Password.py", label="Forgot Password?")
+
         st.write("")
-        if st.button("👁️" if not show_pw else "🙈", key="login_toggle_pw"):
-            st.session_state.login_show_pw = not show_pw
-            st.rerun()
+        login_clicked = st.button("Login", type="primary", use_container_width=True)
 
-    st.page_link("pages/04_Forgot_Password.py", label="Forgot Password?")
-
-    st.write("")
-    login_clicked = st.button("Login", type="primary", use_container_width=True)
-
-    # ---- NATIVE STREAMLIT NAVIGATION ROW ----
-    st.write(" ")
-    left_msg_col, right_link_col = st.columns([1.1, 2])
-    with left_msg_col:
-        st.markdown('<p style="text-align:right; margin-top:0.35rem; font-size:0.95rem; color:#372713; font-weight:500;">New here?</p>', unsafe_allow_html=True)
-    with right_link_col:
-        st.page_link("pages/02_Create_Account.py", label="Create Account")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+        # ---- NATIVE STREAMLIT NAVIGATION ROW (ALIGNED ON SAME BASELINE) ----
+        st.write(" ")
+        footer_col1, footer_col2 = st.columns([1, 1], vertical_alignment="center")
+        with footer_col1:
+            st.markdown('<p style="text-align:right; margin:0; font-size:0.95rem; color:#2A1D16; font-weight:500;">New here?</p>', unsafe_allow_html=True)
+        with footer_col2:
+            st.page_link("pages/02_Create_Account.py", label="Create Account")
 
 # ----------------- PHASE 4: EXECUTION BUSINESS LOGIC -----------------
 if login_clicked:

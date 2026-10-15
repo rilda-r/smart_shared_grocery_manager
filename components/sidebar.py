@@ -43,16 +43,16 @@ _SIDEBAR_CSS = """
 /* Hide Streamlit's auto-generated multipage nav */
 [data-testid="stSidebarNav"] { display: none !important; }
 
-/* Sleek vertical sidebar panel */
+/* Warm Chocolate vertical sidebar panel */
 [data-testid="stSidebar"] {
-    background-color: #2B1D0F !important;
-    background-image: linear-gradient(180deg, #2B1D0F 0%, #372713 100%) !important;
-    border-right: 1.5px solid rgba(163, 150, 112, 0.25) !important;
+    background-color: #3B2A20 !important;
+    background-image: linear-gradient(180deg, #3B2A20 0%, #211611 100%) !important;
+    border-right: 1.5px solid rgba(227, 214, 190, 0.2) !important;
     min-width: 250px !important;
-    box-shadow: 4px 0 24px rgba(43, 29, 15, 0.2) !important;
+    box-shadow: 4px 0 24px rgba(33, 22, 17, 0.25) !important;
 }
 [data-testid="stSidebar"] * {
-    color: #F5ECE3 !important;
+    color: #F3EBDD !important;
 }
 
 /* Sidebar logo */
@@ -60,21 +60,21 @@ _SIDEBAR_CSS = """
     font-family: 'Fraunces', Georgia, serif;
     font-size: 1.65rem;
     font-weight: 800;
-    color: #FFFFFF !important;
+    color: #FFFDF9 !important;
     letter-spacing: -0.02em;
     margin-bottom: 0.15rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.25);
 }
 .sb-tagline {
     font-size: 0.78rem;
-    color: #D9C4B1 !important;
+    color: #EADFCB !important;
     font-weight: 500;
     margin-bottom: 1.3rem;
     letter-spacing: 0.02em;
 }
 .sb-divider {
     border: none;
-    border-top: 1px solid rgba(217, 196, 177, 0.18);
+    border-top: 1px solid rgba(227, 214, 190, 0.18);
     margin: 0.9rem 0;
 }
 .sb-section-label {
@@ -82,16 +82,17 @@ _SIDEBAR_CSS = """
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #A39670 !important;
+    color: #C8963E !important;
     margin: 1.1rem 0 0.45rem 0.4rem;
 }
 .sb-user-chip {
-    background: #D9C4B1 !important;
+    background: #FBF6EC !important;
+    border: 1px solid #E3D6BE;
     border-radius: 24px;
     padding: 6px 14px;
     font-size: 0.85rem;
     font-weight: 700;
-    color: #372713 !important;
+    color: #3B2A20 !important;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -99,16 +100,16 @@ _SIDEBAR_CSS = """
     box-shadow: 0 3px 8px rgba(0,0,0,0.18);
 }
 .sb-user-chip * {
-    color: #372713 !important;
+    color: #3B2A20 !important;
 }
 
-/* Nav links in sidebar (pill items with micro-interactions) */
+/* Nav links in sidebar (warm wood pill items with micro-interactions) */
 [data-testid="stSidebar"] [data-testid="stPageLink"] {
-    margin-bottom: 3px !important;
+    margin-bottom: 4px !important;
 }
 [data-testid="stSidebar"] [data-testid="stPageLink"] a,
 [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"] {
-    color: #E8DDD2 !important;
+    color: #F3EBDD !important;
     font-size: 0.92rem !important;
     font-weight: 500 !important;
     padding: 8px 14px !important;
@@ -120,28 +121,28 @@ _SIDEBAR_CSS = """
 }
 [data-testid="stSidebar"] [data-testid="stPageLink"] a p,
 [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"] p {
-    color: #E8DDD2 !important;
+    color: #F3EBDD !important;
     font-weight: 500 !important;
     margin: 0 !important;
     transition: color 0.15s ease !important;
 }
 [data-testid="stSidebar"] [data-testid="stPageLink"] a:hover,
 [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"]:hover {
-    background-color: rgba(217, 196, 177, 0.14) !important;
+    background-color: #4A3528 !important;
     transform: translateX(4px) !important;
 }
 [data-testid="stSidebar"] [data-testid="stPageLink"] a:hover p,
 [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"]:hover p {
-    color: #FFFFFF !important;
+    color: #FFFDF9 !important;
     font-weight: 600 !important;
 }
 
 /* Sidebar action buttons (e.g. Logout) */
 [data-testid="stSidebar"] .stButton > button {
-    background-color: rgba(217, 196, 177, 0.08) !important;
-    color: #E8DDD2 !important;
-    border: 1.5px solid rgba(163, 150, 112, 0.35) !important;
-    border-radius: 14px !important;
+    background-color: rgba(251, 246, 236, 0.08) !important;
+    color: #F3EBDD !important;
+    border: 1.5px solid rgba(227, 214, 190, 0.35) !important;
+    border-radius: 12px !important;
     font-size: 0.88rem !important;
     font-weight: 600 !important;
     padding: 0.55rem 1rem !important;
@@ -152,10 +153,10 @@ _SIDEBAR_CSS = """
     transition: all 0.2s ease !important;
 }
 [data-testid="stSidebar"] .stButton > button:hover {
-    background-color: #5C0203 !important;
-    border-color: #5C0203 !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 4px 12px rgba(92, 2, 3, 0.3) !important;
+    background-color: #7A1F2B !important;
+    border-color: #7A1F2B !important;
+    color: #FFFDF9 !important;
+    box-shadow: 0 4px 14px rgba(122, 31, 43, 0.3) !important;
     transform: translateY(-1px);
 }
 </style>

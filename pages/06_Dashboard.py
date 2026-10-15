@@ -16,7 +16,7 @@ from style import apply_base_style, render_dev_mode_banner
 from utils.session import require_auth, get_current_user_id, get_username
 from utils.formatting import format_currency
 from components.sidebar import render_sidebar
-from components.cards import render_metric_card, render_info_card, render_empty_state
+from components.cards import render_metric_card, render_metric_cards_grid, render_info_card, render_empty_state
 from components.charts import render_category_pie_chart, render_budget_utilization_chart
 from database.database import get_user_joined_rooms, get_live_grocery_items
 from services.personal_expense_service import get_personal_expenses as svc_get_personal_expenses
@@ -42,8 +42,8 @@ render_dev_mode_banner()
 
 # ── Page title ────────────────────────────────────────────────────────────────
 st.markdown(f"# 📊 Dashboard")
-st.markdown(f"<p style='color:#5B6459; margin-top:-0.8rem;'>Welcome back, <strong>{username}</strong>!</p>", unsafe_allow_html=True)
-st.markdown("<hr style='border-color:#D8D0BE; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
+st.markdown(f"<p style='color:#5C4A3E; margin-top:-0.8rem;'>Welcome back, <strong>{username}</strong>!</p>", unsafe_allow_html=True)
+st.markdown("<hr style='border-color:#E3D6BE; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
 
 
 # ── Pull database data ────────────────────────────────────────────────────────
@@ -112,27 +112,20 @@ over_budget_count = sum(
 )
 
 # ── Metric row ────────────────────────────────────────────────────────────────
-m1, m2, m3, m4, m5, m6 = st.columns(6)
-
-with m1:
-    render_metric_card("My Rooms", str(len(my_rooms)), "active rooms")
-with m2:
-    render_metric_card("Pending Items", str(len(pending_items)), "across all rooms")
-with m3:
-    render_metric_card("I Owe", format_currency(amount_owe), "pending payments", accent="danger")
-with m4:
-    render_metric_card("Owed to Me", format_currency(amount_owed_to_me), "pending receipts", accent="gold")
-with m5:
-    render_metric_card("Personal Spend", format_currency(total_spent), "this month total")
-with m6:
-    render_metric_card(
-        "Over Budget",
-        str(over_budget_count),
-        "categories",
-        accent="danger" if over_budget_count > 0 else "default",
-    )
-
-st.markdown("<br>", unsafe_allow_html=True)
+summary_cards = [
+    {"label": "MY ROOMS", "value": str(len(my_rooms)), "sub": "active rooms"},
+    {"label": "PENDING ITEMS", "value": str(len(pending_items)), "sub": "across all rooms"},
+    {"label": "I OWE", "value": format_currency(amount_owe), "sub": "pending payments", "accent": "danger"},
+    {"label": "OWED TO ME", "value": format_currency(amount_owed_to_me), "sub": "pending receipts", "accent": "gold"},
+    {"label": "PERSONAL SPEND", "value": format_currency(total_spent), "sub": "this month total"},
+    {
+        "label": "OVER BUDGET",
+        "value": str(over_budget_count),
+        "sub": "categories",
+        "accent": "danger" if over_budget_count > 0 else "default",
+    },
+]
+render_metric_cards_grid(summary_cards)
 
 # ── Two-column section ────────────────────────────────────────────────────────
 left_col, right_col = st.columns([1, 1], gap="large")
@@ -146,11 +139,11 @@ with left_col:
             pending_in_room = sum(1 for i in all_items if i["roomId"] == room["id"] and i["status"] == "pending")
             st.markdown(
                 f"""
-                <div style="background:#FFFFFF; border:1px solid rgba(163, 150, 112, 0.35); border-left:4px solid #5C0203;
-                            border-radius:16px; padding:1.1rem 1.3rem; margin-bottom:0.75rem; box-shadow:0 4px 14px rgba(55, 39, 19, 0.04);">
-                    <div style="font-weight:700; color:#372713; font-size:1.02rem;">{room['name']}</div>
-                    <div style="font-size:0.82rem; color:#6B5A47; margin-top:0.3rem;">
-                        Code: <code style="background:#FAF6F0; border:1px solid #A39670; border-radius:8px; padding:2px 6px; color:#5C0203; font-weight:700;">{room.get('code','')}</code> &nbsp;|&nbsp;
+                <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-left:4px solid #7A1F2B;
+                            border-radius:18px; padding:1.1rem 1.3rem; margin-bottom:0.75rem; box-shadow:0 4px 20px -2px rgba(59, 42, 32, 0.08);">
+                    <div style="font-weight:700; color:#2A1D16; font-size:1.02rem;">{room['name']}</div>
+                    <div style="font-size:0.82rem; color:#5C4A3E; margin-top:0.3rem;">
+                        Code: <code style="background:#F7F2E8; border:1px solid #E3D6BE; border-radius:8px; padding:2px 6px; color:#7A1F2B; font-weight:700;">{room.get('code','')}</code> &nbsp;|&nbsp;
                         {pending_in_room} pending item{"s" if pending_in_room != 1 else ""}
                     </div>
                 </div>
@@ -169,11 +162,11 @@ with left_col:
             room_name = next((r["name"] for r in my_rooms if r["id"] == item["roomId"]), "—")
             st.markdown(
                 f"""
-                <div style="background:#FFFFFF; border:1px solid rgba(163, 150, 112, 0.25); border-radius:12px;
+                <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:14px;
                             padding:0.65rem 1rem; margin-bottom:0.45rem; display:flex; justify-content:space-between; align-items:center;
-                            box-shadow:0 2px 6px rgba(55, 39, 19, 0.02);">
-                    <div style="font-size:0.92rem; font-weight:600; color:#372713;">🛒 {item['itemName']} <span style="color:#5C0203; font-weight:700;">×{item['quantity']}</span></div>
-                    <div style="font-size:0.78rem; color:#6B5A47; background:#FAF6F0; border-radius:8px; padding:2px 8px;">{room_name}</div>
+                            box-shadow:0 2px 6px rgba(59, 42, 32, 0.03);">
+                    <div style="font-size:0.92rem; font-weight:600; color:#2A1D16;">🛒 {item['itemName']} <span style="color:#7A1F2B; font-weight:700;">×{item['quantity']}</span></div>
+                    <div style="font-size:0.78rem; color:#5C4A3E; background:#F7F2E8; border:1px solid #E3D6BE; border-radius:8px; padding:2px 8px;">{room_name}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -195,17 +188,17 @@ with right_col:
         for b in budgets:
             spent = spending_by_cat.get(b["category"], 0.0)
             pct = (spent / b["monthlyLimit"] * 100) if b["monthlyLimit"] > 0 else 0
-            color = "#5C0203" if pct >= 100 else ("#A39670" if pct >= 80 else "#4D4828")
+            color = "#8C1C13" if pct >= 100 else ("#C8963E" if pct >= 80 else "#6B8F71")
             st.markdown(
                 f"""
-                <div style="background:#FFFFFF; border:1px solid rgba(163, 150, 112, 0.3); border-radius:14px;
-                            padding:0.85rem 1.1rem; margin-bottom:0.7rem; box-shadow:0 2px 6px rgba(55,39,19,0.02);">
+                <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:18px;
+                            padding:0.85rem 1.1rem; margin-bottom:0.7rem; box-shadow:0 4px 20px -2px rgba(59, 42, 32, 0.06);">
                     <div style="display:flex; justify-content:space-between; font-size:0.88rem; font-weight:600;
-                                color:#372713; margin-bottom:6px;">
+                                color:#2A1D16; margin-bottom:6px;">
                         <span>{b['category']}</span>
                         <span style="color:{color}; font-weight:700;">{format_currency(spent)} / {format_currency(b['monthlyLimit'])}</span>
                     </div>
-                    <div style="background:#FAF6F0; border:1px solid rgba(163, 150, 112, 0.25); border-radius:8px; height:8px; overflow:hidden;">
+                    <div style="background:#EADFCB; border:1px solid #E3D6BE; border-radius:8px; height:8px; overflow:hidden;">
                         <div style="background:{color}; width:{min(pct, 100):.0f}%; height:100%; border-radius:8px;"></div>
                     </div>
                 </div>

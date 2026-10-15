@@ -23,7 +23,6 @@ st.set_page_config(
 init_db()
 apply_base_style()
 hide_sidebar()
-top_nav()
 
 # Run active session timeout check
 check_session_timeout()
@@ -44,17 +43,16 @@ if st.session_state.get("logged_in", False) or st.session_state.get("is_authenti
 left, right = st.columns([1, 1], gap="large")
 
 with left:
-    st.write("")
-    st.write("")
     st.markdown(
         """
-        <h1 style="font-size:2.3rem;">Welcome back</h1>
-        <p class="groc-muted" style="font-size:1.05rem;">Let's get your groceries sorted.</p>
+        <div style="padding:0.2rem 0 1.5rem 0; text-align:left;">
+            <div class="groc-logo" style="font-size:2.2rem; margin-bottom:0.1rem;">🛒 GrocEase</div>
+            <div class="groc-tagline" style="margin-bottom:2.2rem;">Shop together. Split smarter.</div>
+            <h1 style="font-size:2.8rem; margin:0 0 0.5rem 0; line-height:1.15;">Welcome back</h1>
+            <p class="groc-muted" style="font-size:1.15rem; margin:0 0 1.5rem 0;">Let's get your groceries sorted.</p>
+            <div style="font-size:2.8rem;">🛒 🥦 🥛 🍎</div>
+        </div>
         """,
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<div style="font-size:2.5rem; margin-top:1.5rem;">🛒 🥦 🥛 🍎</div>',
         unsafe_allow_html=True,
     )
 
@@ -63,27 +61,13 @@ with right:
     if "registration_success_message" in st.session_state:
         st.success(f"✅ {st.session_state.pop('registration_success_message')}")
 
-    with st.container(key="login_card"):
+    with st.container(border=True):
         render_dev_mode_banner()
 
         st.markdown("#### Login")
 
         email = st.text_input("Email Address", placeholder="you@example.com")
-
-        show_pw = st.session_state.get("login_show_pw", False)
-        pw_col, pw_toggle = st.columns([5, 1], gap="small")
-        with pw_col:
-            password = st.text_input(
-                "Password",
-                type="default" if show_pw else "password",
-                placeholder="Enter your password",
-            )
-        with pw_toggle:
-            st.write("")
-            st.write("")
-            if st.button("👁️" if not show_pw else "🙈", key="login_toggle_pw"):
-                st.session_state.login_show_pw = not show_pw
-                st.rerun()
+        password = st.text_input("Password", type="password", placeholder="Enter your password")
 
         # --- Forgot Password Link (right aligned) ---
         with st.container(key="forgot_link_wrap"):
@@ -91,11 +75,12 @@ with right:
 
         login_clicked = st.button("Login", type="primary", use_container_width=True)
 
-        st.markdown(
-            "<p style='text-align:center; margin-top:1rem; font-size:0.9rem; color:#372713; font-weight:500; margin-bottom:0.2rem;'>New here?</p>",
-            unsafe_allow_html=True,
-        )
-        with st.container(key="create_account_link_wrap"):
+        # ---- NATIVE STREAMLIT NAVIGATION ROW (ALIGNED ON SAME BASELINE) ----
+        st.write(" ")
+        footer_col1, footer_col2 = st.columns([1, 1], vertical_alignment="center")
+        with footer_col1:
+            st.markdown('<p style="text-align:right; margin:0; font-size:0.95rem; color:#2A1D16; font-weight:500;">New here?</p>', unsafe_allow_html=True)
+        with footer_col2:
             st.page_link("pages/02_Create_Account.py", label="Create Account")
 
 # ============================================================

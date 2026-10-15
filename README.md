@@ -32,8 +32,7 @@ The application underwent a comprehensive 3-phase overhaul to enable cloud persi
 * **Live Room Grocery Sync**: Grocery List (`pages/08_Grocery_List.py`) and Shopping Mode (`pages/09_Shopping.py`) hooked up live to active room state with instant Supabase streaming.
 * **Duplicate Item Confirmation**: Pop-up confirmation dialog ("*This item already exists. Do you want to add quantity upon it?*") that increments item quantity linearly rather than creating duplicates.
 * **Purchased Item Locking**: Purchased row items in the Grocery List view have Edit (`✏️`) and Delete (`🗑️`) permanently locked (`🔒`) to safeguard purchase logs.
-* **Shopping Mode Attribution & Increments**: Displays member nickname (`👤 Added by <nickname>`) alongside each item; marking as purchased increments purchase count linearly in both local state and Supabase.
-* **Monthly Budget History Dashboard**: Interactive visual dashboard in `pages/13_Budget.py` tracking multi-month spending, cumulative savings KPIs, and historical charts.
+* **Consolidated Budget Dashboard**: Unified single-screen layout in `pages/13_Budget.py` co-locating active category progress, numerical month-end summary, and Used vs. Saved visual analysis.
 * **Month-End Calculation & Supabase Archiving**: Compiles numerical summary and visual Used vs. Saved chart; archives reports permanently to Supabase `monthly_budget_history`; provides a reset modal to archive and clear active expenses for the new month.
 
 ---

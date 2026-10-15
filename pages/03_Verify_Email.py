@@ -49,42 +49,39 @@ st.markdown(
 
 _, mid, _ = st.columns([0.2, 3, 0.2])
 with mid:
-    st.markdown('<div class="groc-card">', unsafe_allow_html=True)
+    with st.container(border=True):
+        render_dev_mode_banner()
 
-    render_dev_mode_banner()
+        if not smtp_is_configured() and st.session_state.get("dev_otp_preview"):
+            st.info(
+                f"Dev Mode (Live emails disabled): Your verification code is **{st.session_state.dev_otp_preview}**",
+                icon="🛠️",
+            )
 
-    if not smtp_is_configured() and st.session_state.get("dev_otp_preview"):
-        st.info(
-            f"Dev Mode (Live emails disabled): Your verification code is **{st.session_state.dev_otp_preview}**",
-            icon="🛠️",
+        otp_input = st.text_input(
+            "Enter 6-digit code",
+            max_chars=6,
+            placeholder="______",
+            key="otp_input",
         )
+        verify_clicked = st.button("Verify Account", type="primary", use_container_width=True)
 
-    otp_input = st.text_input(
-        "Enter 6-digit code",
-        max_chars=6,
-        placeholder="______",
-        key="otp_input",
-    )
-    verify_clicked = st.button("Verify Account", type="primary", use_container_width=True)
+        st.write(" ")
+        now = time.time()
+        last_sent = st.session_state.get("otp_last_sent_ts", 0)
+        cooldown_remaining = int(OTP_RESEND_COOLDOWN_SECONDS - (now - last_sent))
 
-    st.write(" ")
-    now = time.time()
-    last_sent = st.session_state.get("otp_last_sent_ts", 0)
-    cooldown_remaining = int(OTP_RESEND_COOLDOWN_SECONDS - (now - last_sent))
-
-    resend_col1, resend_col2 = st.columns([2, 1.4])
-    with resend_col1:
-        st.markdown('<span class="groc-muted">Didn\'t receive the code?</span>', unsafe_allow_html=True)
-    with resend_col2:
-        st.markdown('<div class="groc-secondary">', unsafe_allow_html=True)
-        resend_disabled = cooldown_remaining > 0
-        resend_label = (
-            f"Resend OTP ({cooldown_remaining}s)" if resend_disabled else "Resend OTP"
-        )
-        resend_clicked = st.button(resend_label, disabled=resend_disabled, key="resend_otp")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
+        resend_col1, resend_col2 = st.columns([2, 1.4])
+        with resend_col1:
+            st.markdown('<span class="groc-muted">Didn\'t receive the code?</span>', unsafe_allow_html=True)
+        with resend_col2:
+            st.markdown('<div class="groc-secondary">', unsafe_allow_html=True)
+            resend_disabled = cooldown_remaining > 0
+            resend_label = (
+                f"Resend OTP ({cooldown_remaining}s)" if resend_disabled else "Resend OTP"
+            )
+            resend_clicked = st.button(resend_label, disabled=resend_disabled, key="resend_otp")
+            st.markdown("</div>", unsafe_allow_html=True)
 
 if resend_clicked:
     user = get_user_by_email(email)
@@ -121,6 +118,6 @@ if verify_clicked:
             # Registration Flow Fix: Do NOT log in automatically.
             # Redirect to Login screen and require manual credential entry.
             st.session_state.registration_success_message = (
-                "Account verified successfully! Please log in with your credentials."
+                "Account verified successfully! A welcome onboarding email has been sent to your inbox. Please log in."
             )
             st.switch_page("pages/01_Login.py")

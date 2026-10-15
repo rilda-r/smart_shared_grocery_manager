@@ -1,46 +1,91 @@
 import streamlit as st
 
-PAPER = "#D9C4B1"           # CHAMPAGNE: Warm, soft canvas background
-SURFACE = "#FFFFFF"         # Crisp White containers for readability
-SURFACE_WARM = "#FCFBF8"    # Soft warm ivory container
-INK = "#372713"             # ESPRESSO: Rich dark text & details
-INK_MUTED = "#6B5A47"       # Muted espresso
-PRIMARY = "#5C0203"         # OXBLOOD: Key primary actions, highlights, headers
-PRIMARY_HOVER = "#7A0A0C"   # Deeper oxblood hover
-SECONDARY = "#4D4828"       # EMERALD SAGE: Success, secondary actions, indicators
-ACCENT_WARM = "#A39670"     # VINTAGE ROSE: Warm secondary elements, borders, subtle tags
-LINE = "rgba(163, 150, 112, 0.35)" # Soft vintage rose border
-LINE_SOLID = "#A39670"
-SIDEBAR_BG = "#2B1D0F"      # Sleek deep espresso for vertical sidebar
+# ==============================================================================
+# GrocEase "Shared Kitchen Counter" Aesthetic Design Tokens
+# ==============================================================================
+
+# Sand Canvas (Main Background)
+SAND = "#F3EBDD"             # Main sand canvas background
+SAND_CANVAS = "#F7F2E8"      # Light canvas tint
+SAND_SUBTLE = "#EADFCB"      # Subtle warm sand tint
+SAND_DARK = "#D8C9AE"
+
+# Deep Chocolate (Text & Headings)
+DEEP_CHOCOLATE = "#2A1D16"   # Main text & headings
+CHOCOLATE = "#3B2A20"        # Chocolate sidebar background
+CHOCOLATE_HOVER = "#4A3528"  # Sidebar item hover & muted labels
+CHOCOLATE_CARD = "#211611"   # Deep chocolate card
+CHOCOLATE_MUTED = "#5C4A3E"  # Muted chocolate body text
+
+# Cream (Card & Container Background)
+CREAM = "#FBF6EC"            # Card & container background
+CREAM_BORDER = "#E3D6BE"     # Card & input border
+CREAM_LIGHT = "#FFFDF9"      # Elevated light container background
+
+# Burgundy (Primary Action Buttons / Accents)
+BURGUNDY = "#7A1F2B"         # Primary actions, highlights, brand accents
+BURGUNDY_HOVER = "#661823"   # Burgundy hover
+BURGUNDY_LIGHT = "#9E2A38"   # Burgundy light highlight
+
+# Sage (In the Green / Live / Success)
+SAGE = "#6B8F71"             # Success, active sync, healthy budget
+SAGE_LIGHT = "#EAF1EB"       # Sage light background
+
+# Oxblood (Debts / Errors / Deletion)
+OXBLOOD = "#8C1C13"          # Debts, errors, delete actions, over-budget
+OXBLOOD_LIGHT = "#FCEAE8"    # Oxblood light background
+
+# Ochre (Warnings / Pending)
+OCHRE = "#C8963E"            # Warnings, pending, caution badges
+OCHRE_LIGHT = "#FBF3E3"      # Ochre light background
+
+# Backward-compatibility token aliases
+PAPER = SAND
+SURFACE = CREAM
+SURFACE_WARM = SAND_CANVAS
+INK = DEEP_CHOCOLATE
+INK_MUTED = CHOCOLATE_MUTED
+PRIMARY = BURGUNDY
+PRIMARY_HOVER = BURGUNDY_HOVER
+SECONDARY = SAGE
+ACCENT_WARM = CREAM_BORDER
+LINE = CREAM_BORDER
+LINE_SOLID = CREAM_BORDER
+SIDEBAR_BG = CHOCOLATE
+
+WARM_SHADOW = "0 4px 20px -2px rgba(59, 42, 32, 0.08)"
+WARM_SHADOW_MD = "0 8px 30px -4px rgba(59, 42, 32, 0.12)"
 
 BASE_CSS = f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 html, body, [class*="css"] {{
-    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
-    color: {INK} !important;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: {DEEP_CHOCOLATE} !important;
 }}
+
+/* Warm Dotted Kitchen Counter Texture */
 .stApp {{ 
-    background-color: {PAPER} !important;
-    background-image: radial-gradient(rgba(163, 150, 112, 0.12) 1px, transparent 0);
-    background-size: 24px 24px;
+    background-color: {SAND} !important;
+    background-image: radial-gradient(rgba(59, 42, 32, 0.08) 1.5px, transparent 1.5px) !important;
+    background-size: 24px 24px !important;
 }}
 
 /* Typography */
-h1, h2, h3, h4 {{
-    font-family: 'Fraunces', Georgia, serif;
-    color: {PRIMARY} !important;
+h1, h2, h3, h4, .stTitle, .stHeader {{
+    font-family: 'Fraunces', Georgia, serif !important;
+    color: {DEEP_CHOCOLATE} !important;
     font-weight: 700 !important;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
 }}
-h1 {{ font-size: 2.3rem !important; margin-bottom: 0.4rem !important; }}
-h2 {{ font-size: 1.8rem !important; }}
+h1 {{ font-size: 2.35rem !important; margin-bottom: 0.4rem !important; }}
+h2 {{ font-size: 1.85rem !important; }}
 h3 {{ font-size: 1.35rem !important; }}
 h4 {{ font-size: 1.1rem !important; }}
 
 p, span, label, div {{
-    color: {INK};
+    color: {DEEP_CHOCOLATE};
 }}
 
 #MainMenu, footer, .stDeployButton, [data-testid="stToolbarActions"] {{
@@ -60,202 +105,392 @@ header [data-testid="stToolbar"] {{
 .block-container {{ 
     padding-top: 2rem; 
     padding-bottom: 3.5rem;
-    max-width: 1140px; 
+    max-width: 1160px; 
 }}
 
-/* Streamlit Primary & Default Buttons (OXBLOOD) */
-.stButton > button {{
-    background-color: {PRIMARY} !important;
-    color: #FFFFFF !important;
+/* Streamlit Primary & Default Buttons (BURGUNDY) */
+.stButton > button,
+button[kind="primary"] {{
+    background-color: {BURGUNDY} !important;
+    color: #FFFDF9 !important;
     border: none !important;
-    border-radius: 14px !important;
-    padding: 0.65rem 1.5rem !important;
+    border-radius: 12px !important;
+    padding: 0.65rem 1.4rem !important;
     font-weight: 600 !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 0.94rem !important;
-    box-shadow: 0 4px 12px rgba(92, 2, 3, 0.22) !important;
+    box-shadow: 0 4px 14px rgba(122, 31, 43, 0.22) !important;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     letter-spacing: 0.01em;
 }}
-.stButton > button:hover {{ 
-    background-color: {PRIMARY_HOVER} !important; 
-    box-shadow: 0 6px 16px rgba(92, 2, 3, 0.32) !important;
+.stButton > button:hover,
+button[kind="primary"]:hover {{ 
+    background-color: {BURGUNDY_HOVER} !important; 
+    box-shadow: 0 6px 18px rgba(122, 31, 43, 0.32) !important;
     transform: translateY(-1px);
 }}
-.stButton > button:active {{
+.stButton > button:active,
+button[kind="primary"]:active {{
     transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(92, 2, 3, 0.2) !important;
+    box-shadow: 0 2px 6px rgba(122, 31, 43, 0.2) !important;
+    background-color: #54121B !important;
 }}
-.stButton > button:focus {{ 
-    background-color: {PRIMARY} !important; 
-    color: #FFFFFF !important; 
-    box-shadow: 0 0 0 3px rgba(92, 2, 3, 0.25) !important;
+.stButton > button:focus,
+button[kind="primary"]:focus {{ 
+    background-color: {BURGUNDY} !important; 
+    color: #FFFDF9 !important; 
+    box-shadow: 0 0 0 3px rgba(122, 31, 43, 0.25) !important;
 }}
 .stButton > button * {{ color: inherit !important; }}
 
-/* Secondary button style (EMERALD SAGE / WARM OUTLINE) */
+/* Secondary button style (CREAM & BORDER) */
 .groc-secondary .stButton > button,
 button[kind="secondary"] {{
-    background-color: {SURFACE_WARM} !important;
-    color: {SECONDARY} !important;
-    border: 1.5px solid {SECONDARY} !important;
-    box-shadow: 0 2px 8px rgba(77, 72, 40, 0.08) !important;
+    background-color: {CREAM} !important;
+    color: {CHOCOLATE} !important;
+    border: 1.5px solid {CREAM_BORDER} !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(59, 42, 32, 0.05) !important;
 }}
 .groc-secondary .stButton > button:hover,
 button[kind="secondary"]:hover {{ 
-    background-color: #EAE6DC !important; 
-    color: {INK} !important;
-    border-color: {SECONDARY} !important;
+    background-color: {SAND_CANVAS} !important; 
+    color: {BURGUNDY} !important;
+    border-color: {BURGUNDY} !important;
     transform: translateY(-1px);
 }}
 
-/* Danger button style (SOFT OXBLOOD OUTLINE) */
+/* Danger button style (OXBLOOD OUTLINE / ACCENT) */
 .groc-danger .stButton > button {{
-    background-color: #FFF5F5 !important;
-    color: {PRIMARY} !important;
-    border: 1.5px solid {PRIMARY} !important;
+    background-color: {OXBLOOD_LIGHT} !important;
+    color: {OXBLOOD} !important;
+    border: 1.5px solid {OXBLOOD} !important;
+    border-radius: 12px !important;
     box-shadow: none !important;
 }}
 .groc-danger .stButton > button:hover {{
-    background-color: {PRIMARY} !important;
-    color: #FFFFFF !important;
+    background-color: {OXBLOOD} !important;
+    color: #FFFDF9 !important;
     transform: translateY(-1px);
 }}
 
-/* Form Inputs (Outlined, Rounded, Soft Focus) */
+/* Form Inputs (Cream Background, Warm Border, Burgundy Focus) */
 .stTextInput div div input,
 .stNumberInput div div input,
 .stDateInput div div input,
 .stTextArea div div textarea {{
-    color: {INK} !important;
-    background-color: {SURFACE} !important;
-    border: 1.5px solid {ACCENT_WARM} !important;
+    color: {DEEP_CHOCOLATE} !important;
+    background-color: {CREAM} !important;
+    border: 1.5px solid {CREAM_BORDER} !important;
     border-radius: 12px !important;
     font-size: 0.98rem !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
     padding: 0.65rem 0.95rem !important;
     transition: all 0.2s ease !important;
-    box-shadow: 0 1px 3px rgba(55, 39, 19, 0.03) !important;
+    box-shadow: 0 1px 4px rgba(59, 42, 32, 0.04) !important;
 }}
 .stTextInput div div input:focus,
 .stNumberInput div div input:focus,
 .stDateInput div div input:focus,
 .stTextArea div div textarea:focus {{
-    border-color: {PRIMARY} !important;
-    box-shadow: 0 0 0 3px rgba(92, 2, 3, 0.18) !important;
-    background-color: #FFFFFF !important;
+    border-color: {BURGUNDY} !important;
+    box-shadow: 0 0 0 3px rgba(122, 31, 43, 0.16) !important;
+    background-color: {CREAM_LIGHT} !important;
 }}
 
-/* Selectbox Dropdown */
-[data-baseweb="select"] > div {{
-    background-color: {SURFACE} !important;
-    border: 1.5px solid {ACCENT_WARM} !important;
+/* Selectbox Dropdown Control & Readability Fix */
+[data-baseweb="select"],
+[data-baseweb="select"] > div,
+[data-baseweb="select"] div[role="combobox"] {{
+    background-color: #FBF6EC !important;
+    border: 1.5px solid #E3D6BE !important;
     border-radius: 12px !important;
-    color: {INK} !important;
-    box-shadow: 0 1px 3px rgba(55, 39, 19, 0.03) !important;
+    color: #2A1D16 !important;
+    box-shadow: 0 1px 4px rgba(59, 42, 32, 0.04) !important;
+}}
+[data-baseweb="select"] * {{
+    color: #2A1D16 !important;
+}}
+[data-baseweb="select"] svg {{
+    fill: #2A1D16 !important;
 }}
 [data-baseweb="select"] > div:focus-within {{
-    border-color: {PRIMARY} !important;
-    box-shadow: 0 0 0 3px rgba(92, 2, 3, 0.18) !important;
+    border-color: #7A1F2B !important;
+    box-shadow: 0 0 0 3px rgba(122, 31, 43, 0.16) !important;
+}}
+
+/* BaseWeb Dropdown Popover & Options List */
+[data-baseweb="popover"],
+[data-baseweb="popover"] > div,
+[data-baseweb="menu"],
+ul[role="listbox"] {{
+    background-color: #FBF6EC !important;
+    border: 1.5px solid #E3D6BE !important;
+    border-radius: 14px !important;
+    box-shadow: 0 10px 30px -4px rgba(59, 42, 32, 0.16) !important;
+    padding: 6px !important;
+}}
+ul[role="listbox"] li,
+li[role="option"],
+[data-baseweb="menu"] li {{
+    background-color: transparent !important;
+    color: #2A1D16 !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 0.94rem !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+    padding: 0.55rem 0.85rem !important;
+    transition: background 0.15s ease !important;
+}}
+ul[role="listbox"] li:hover,
+li[role="option"]:hover,
+li[role="option"][aria-selected="true"],
+[data-baseweb="menu"] li:hover {{
+    background-color: #EADFCB !important;
+    color: #7A1F2B !important;
+    font-weight: 700 !important;
+}}
+
+/* Ghost Panel Removal (Loading States & Smooth Transitions) */
+div[data-testid="stAppViewContainer"],
+div.stApp[data-test-script-state="running"],
+div.stApp[data-test-script-state="running"] div[data-testid="stAppViewContainer"],
+div.stApp[data-test-script-state="running"] > div:first-child,
+div[data-testid="stAppViewBlockContainer"] {{
+    opacity: 1 !important;
+    filter: none !important;
+    transition: none !important;
+}}
+.stSkeleton, [data-testid="stSkeleton"] {{
+    display: none !important;
+}}
+[data-testid="stStatusWidget"] {{
+    display: none !important;
+    visibility: hidden !important;
+}}
+.stDeployButton, [data-testid="stDeployButton"] {{
+    display: none !important;
+    visibility: hidden !important;
 }}
 
 /* Expanders */
 div[data-testid="stExpander"] {{
-    background-color: {SURFACE} !important;
-    border: 1px solid {LINE} !important;
-    border-radius: 16px !important;
-    box-shadow: 0 4px 14px rgba(55, 39, 19, 0.04) !important;
+    background-color: {CREAM} !important;
+    border: 1px solid {CREAM_BORDER} !important;
+    border-radius: 18px !important;
+    box-shadow: 0 4px 20px -2px rgba(59, 42, 32, 0.08) !important;
     margin-bottom: 0.9rem !important;
     overflow: hidden !important;
 }}
 div[data-testid="stExpander"] summary {{
-    padding: 0.85rem 1.2rem !important;
+    padding: 0.85rem 1.25rem !important;
     font-weight: 600 !important;
-    color: {INK} !important;
+    color: {DEEP_CHOCOLATE} !important;
 }}
 div[data-testid="stExpander"] summary:hover {{
-    background-color: {SURFACE_WARM} !important;
-    color: {PRIMARY} !important;
+    background-color: {SAND_CANVAS} !important;
+    color: {BURGUNDY} !important;
 }}
 
 /* Tabs */
 button[data-baseweb="tab"] {{
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-weight: 600 !important;
-    color: {SECONDARY} !important;
+    color: {CHOCOLATE_MUTED} !important;
     border-radius: 10px 10px 0 0 !important;
-    padding: 0.6rem 1.2rem !important;
+    padding: 0.65rem 1.25rem !important;
     transition: all 0.15s ease !important;
 }}
 button[data-baseweb="tab"][aria-selected="true"] {{
-    color: {PRIMARY} !important;
-    border-bottom: 2.5px solid {PRIMARY} !important;
+    color: {BURGUNDY} !important;
+    border-bottom: 2.5px solid {BURGUNDY} !important;
     background: transparent !important;
 }}
 
 /* Cards & Layout Blocks */
+div[data-testid="stVerticalBlockBorderWrapper"] > div {{
+    background-color: {CREAM} !important;
+    border: 1px solid {CREAM_BORDER} !important;
+    border-top: 4px solid {BURGUNDY} !important;
+    border-radius: 18px !important;
+    padding: 1.85rem !important;
+    box-shadow: 0 4px 20px -2px rgba(59, 42, 32, 0.08) !important;
+}}
 .groc-card {{
-    background-color: {SURFACE};
-    border: 1px solid {LINE};
-    border-top: 4px solid {PRIMARY};
-    border-radius: 20px;
+    background-color: {CREAM};
+    border: 1px solid {CREAM_BORDER};
+    border-top: 4px solid {BURGUNDY};
+    border-radius: 18px;
     padding: 1.85rem;
-    box-shadow: 0 8px 24px rgba(55, 39, 19, 0.06), 0 2px 6px rgba(55, 39, 19, 0.03);
+    box-shadow: 0 4px 20px -2px rgba(59, 42, 32, 0.08);
     margin-bottom: 1.2rem;
 }}
 .groc-panel {{
-    background-color: {SURFACE_WARM};
-    border: 1px solid {ACCENT_WARM};
+    background-color: {SAND_CANVAS};
+    border: 1px solid {CREAM_BORDER};
     border-radius: 18px;
     padding: 1.5rem;
-    box-shadow: 0 4px 16px rgba(55, 39, 19, 0.04);
+    box-shadow: 0 4px 20px -2px rgba(59, 42, 32, 0.08);
 }}
 .groc-hr {{
     border: none;
-    border-top: 1px solid {LINE};
+    border-top: 1px solid {CREAM_BORDER};
     margin: 1.6rem 0;
 }}
 
 /* Nav Banner */
 .groc-nav {{
     padding: 0.6rem 0 1.2rem 0;
-    border-bottom: 1px solid {LINE};
+    border-bottom: 1px solid {CREAM_BORDER};
     margin-bottom: 1.8rem;
 }}
 .groc-logo {{
     font-family: 'Fraunces', serif;
-    font-size: 1.7rem;
+    font-size: 1.75rem;
     font-weight: 700;
-    color: {PRIMARY};
+    color: {BURGUNDY};
     letter-spacing: -0.02em;
 }}
 .groc-tagline {{
-    color: {INK_MUTED};
+    color: {CHOCOLATE_MUTED};
     font-size: 0.88rem;
     font-weight: 500;
     margin-top: -0.1rem;
 }}
-.groc-muted {{ color: {INK_MUTED} !important; }}
+.groc-muted {{ color: {CHOCOLATE_MUTED} !important; }}
 
 /* Page Links */
-[data-testid="stPageLink"] {{ margin: 0 !important; }}
+[data-testid="stPageLink"] {{ 
+    margin: 0 !important; 
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    vertical-align: baseline !important;
+}}
 [data-testid="stPageLink"] a,
 [data-testid="stPageLink-NavLink"] {{
     background-color: transparent !important;
     border: none !important;
     padding: 0 !important;
-    color: {PRIMARY} !important;
+    margin: 0 !important;
+    color: {BURGUNDY} !important;
     font-weight: 600 !important;
-    font-size: 0.93rem !important;
+    font-size: 0.94rem !important;
     text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: normal !important;
 }}
 [data-testid="stPageLink"] a p,
 [data-testid="stPageLink-NavLink"] p {{
-    color: {PRIMARY} !important;
+    color: {BURGUNDY} !important;
     font-weight: 600 !important;
+    margin: 0 !important;
+    line-height: normal !important;
 }}
 [data-testid="stPageLink"] a:hover p,
 [data-testid="stPageLink-NavLink"]:hover p {{
-    color: {PRIMARY_HOVER} !important;
+    color: {BURGUNDY_HOVER} !important;
     text-decoration: underline;
+}}
+
+/* Native Metrics Styling */
+[data-testid="stMetricValue"] {{
+    font-family: 'Fraunces', Georgia, serif !important;
+    font-variant-numeric: tabular-nums !important;
+    color: {DEEP_CHOCOLATE} !important;
+}}
+[data-testid="stMetricLabel"] {{
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    color: {CHOCOLATE_MUTED} !important;
+    font-weight: 600 !important;
+}}
+[data-testid="stMetricDelta"] svg {{
+    fill: currentColor !important;
+}}
+
+/* Alert Boxes Styling */
+div[data-testid="stAlert"] {{
+    border-radius: 14px !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    box-shadow: 0 2px 10px rgba(59, 42, 32, 0.05) !important;
+}}
+div[data-testid="stAlert"]:has([data-testid="stNotificationContentSuccess"]) {{
+    background-color: {SAGE_LIGHT} !important;
+    border-color: {SAGE} !important;
+    color: #2E5135 !important;
+}}
+div[data-testid="stAlert"]:has([data-testid="stNotificationContentInfo"]) {{
+    background-color: {OCHRE_LIGHT} !important;
+    border-color: {OCHRE} !important;
+    color: {DEEP_CHOCOLATE} !important;
+}}
+div[data-testid="stAlert"]:has([data-testid="stNotificationContentWarning"]) {{
+    background-color: {OCHRE_LIGHT} !important;
+    border-color: {OCHRE} !important;
+    color: #7A5212 !important;
+}}
+div[data-testid="stAlert"]:has([data-testid="stNotificationContentError"]) {{
+    background-color: {OXBLOOD_LIGHT} !important;
+    border-color: {OXBLOOD} !important;
+    color: {OXBLOOD} !important;
+}}
+
+/* Tabular Numerals for Monetary Consistency */
+.money-tabular {{
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}}
+
+/* Warm Subtle Scrollbars */
+::-webkit-scrollbar {{
+    width: 8px;
+    height: 8px;
+}}
+::-webkit-scrollbar-track {{
+    background: rgba(234, 223, 203, 0.4);
+}}
+::-webkit-scrollbar-thumb {{
+    background: rgba(59, 42, 32, 0.2);
+    border-radius: 9999px;
+}}
+/* Shopping Mode Compact Action Row Alignment */
+.shop-action-row {{
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin-top: 0.15rem !important;
+    margin-bottom: 0.4rem !important;
+}}
+.shop-action-row div[data-testid="stHorizontalBlock"] {{
+    display: flex !important;
+    align-items: center !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    gap: 0.5rem !important;
+}}
+.shop-action-row div[data-testid="column"] {{
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: unset !important;
+    padding: 0 !important;
+}}
+.shop-action-row button {{
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 0.65rem !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
 }}
 </style>
 """
@@ -302,10 +537,10 @@ def render_dev_mode_banner():
     from security.authentication import smtp_is_configured
     if not smtp_is_configured():
         st.markdown(
-            """
-            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(169,122,31,0.12);
-                        border:1px solid rgba(169,122,31,0.3); border-radius:12px; padding:3px 10px;
-                        margin-bottom:12px; font-size:0.75rem; color:#6B4E10; font-weight:600; letter-spacing:0.01em;">
+            f"""
+            <div style="display:inline-flex; align-items:center; gap:6px; background:{OCHRE_LIGHT};
+                        border:1px solid {OCHRE}; border-radius:12px; padding:3px 10px;
+                        margin-bottom:12px; font-size:0.75rem; color:#7A5212; font-weight:600; letter-spacing:0.01em;">
                 <span>🛠️</span><span>Dev Mode: Live emails are disabled</span>
             </div>
             """,
@@ -325,4 +560,3 @@ def top_nav():
         """,
         unsafe_allow_html=True,
     )
-

@@ -1,6 +1,20 @@
+"""
+security/authentication.py
+==========================
+Security and credential validation utilities for GrocEase.
+Integrates with services.email_service for live SMTP delivery and event triggers.
+"""
+
 import os
 import re
 from datetime import datetime, timedelta
+
+from services.email_service import (
+    smtp_is_configured,
+    send_otp_email,
+    send_welcome_email,
+    send_account_deleted_email,
+)
 
 # Cooldown and Expiry settings
 OTP_RESEND_COOLDOWN_SECONDS = 60
@@ -39,17 +53,3 @@ def otp_expiry_time() -> datetime:
 def is_otp_expired(expiry_time: datetime) -> bool:
     """Checks if the current time has surpassed the token expiration time."""
     return datetime.utcnow() > expiry_time
-
-
-def smtp_is_configured() -> bool:
-    """Returns False in local dev mode when live email delivery is mocked."""
-    dev_mode = os.environ.get("GROCEASE_DEV_MODE", "true").lower() in ("true", "1", "yes", "on")
-    if dev_mode:
-        return False
-    smtp_host = os.environ.get("GROCEASE_SMTP_HOST", "").strip()
-    return bool(smtp_host)
-
-
-def send_otp_email(email: str, otp: str):
-    """Sends OTP email or logs to console in development mode."""
-    print(f"[MAIL SYSTEM] Verification code for {email} is: {otp}")

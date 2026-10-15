@@ -2,6 +2,7 @@
 components/navbar.py
 ====================
 Top navigation bar and visual browser-style navigation controls.
+Shared Kitchen Counter aesthetic design.
 """
 
 import streamlit as st
@@ -13,9 +14,9 @@ def render_browser_nav_controls():
         """
         <div style="display:inline-flex; align-items:center; gap:8px; margin-bottom:0.75rem;">
             <button onclick="window.history.back()" title="Go Back" style="
-                background: #FFFFFF;
-                color: #1F4C3D;
-                border: 1.5px solid #C3D6C6;
+                background: #FBF6EC;
+                color: #7A1F2B;
+                border: 1.5px solid #E3D6BE;
                 border-radius: 50%;
                 width: 34px;
                 height: 34px;
@@ -25,16 +26,16 @@ def render_browser_nav_controls():
                 cursor: pointer;
                 font-size: 18px;
                 font-weight: 700;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+                box-shadow: 0 2px 6px rgba(59,42,32,0.06);
                 transition: all 0.15s ease;"
-                onmouseover="this.style.background='#E7EFE6'; this.style.borderColor='#1F4C3D';"
-                onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#C3D6C6';">
+                onmouseover="this.style.background='#F7F2E8'; this.style.borderColor='#7A1F2B';"
+                onmouseout="this.style.background='#FBF6EC'; this.style.borderColor='#E3D6BE';">
                 ‹
             </button>
             <button onclick="window.history.forward()" title="Go Forward" style="
-                background: #FFFFFF;
-                color: #1F4C3D;
-                border: 1.5px solid #C3D6C6;
+                background: #FBF6EC;
+                color: #7A1F2B;
+                border: 1.5px solid #E3D6BE;
                 border-radius: 50%;
                 width: 34px;
                 height: 34px;
@@ -44,10 +45,10 @@ def render_browser_nav_controls():
                 cursor: pointer;
                 font-size: 18px;
                 font-weight: 700;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+                box-shadow: 0 2px 6px rgba(59,42,32,0.06);
                 transition: all 0.15s ease;"
-                onmouseover="this.style.background='#E7EFE6'; this.style.borderColor='#1F4C3D';"
-                onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#C3D6C6';">
+                onmouseover="this.style.background='#F7F2E8'; this.style.borderColor='#7A1F2B';"
+                onmouseout="this.style.background='#FBF6EC'; this.style.borderColor='#E3D6BE';">
                 ›
             </button>
         </div>
@@ -61,12 +62,12 @@ def render_navbar():
         """
         <div class="groc-nav" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
-                <div class="groc-logo">GrocEase</div>
+                <div class="groc-logo">🛒 GrocEase</div>
                 <div class="groc-tagline">Shop together. Split smarter.</div>
             </div>
             <div style="display:flex; gap:8px; align-items:center;">
-                <button onclick="window.history.back()" title="Back" style="background:#FFFFFF; border:1px solid #C3D6C6; border-radius:50%; width:32px; height:32px; cursor:pointer; color:#1F4C3D; font-weight:bold;">‹</button>
-                <button onclick="window.history.forward()" title="Forward" style="background:#FFFFFF; border:1px solid #C3D6C6; border-radius:50%; width:32px; height:32px; cursor:pointer; color:#1F4C3D; font-weight:bold;">›</button>
+                <button onclick="window.history.back()" title="Back" style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:50%; width:32px; height:32px; cursor:pointer; color:#7A1F2B; font-weight:bold;">‹</button>
+                <button onclick="window.history.forward()" title="Forward" style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:50%; width:32px; height:32px; cursor:pointer; color:#7A1F2B; font-weight:bold;">›</button>
             </div>
         </div>
         """,

@@ -49,8 +49,8 @@ render_sidebar()
 user_id = get_current_user_id()
 
 st.markdown("# 🏠 Rooms")
-st.markdown("<p style='color:#5B6459; margin-top:-0.8rem;'>Create and manage shared spaces for your grocery groups.</p>", unsafe_allow_html=True)
-st.markdown("<hr style='border-color:#D8D0BE; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
+st.markdown("<p style='color:#5C4A3E; margin-top:-0.8rem;'>Create and manage shared spaces for your grocery groups.</p>", unsafe_allow_html=True)
+st.markdown("<hr style='border-color:#E3D6BE; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
 
 # ── Create / Join tabs ────────────────────────────────────────────────────────
 tab_create, tab_join = st.tabs(["➕ Create Room", "🔗 Join Room"])
@@ -70,11 +70,11 @@ with tab_create:
                     st.success(f"✅ Room **{created_room['name']}** created successfully!")
                     st.markdown(
                         f"""
-                        <div style="background:#FAF6F0; border:1px solid #A39670; border-radius:16px;
-                                    padding:1.1rem 1.4rem; margin-top:0.5rem; box-shadow:0 4px 12px rgba(55,39,19,0.03);">
-                            <div style="font-size:0.85rem; color:#6B5A47; margin-bottom:0.3rem;">Share this secret code with your group to join:</div>
+                        <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:18px;
+                                    padding:1.1rem 1.4rem; margin-top:0.5rem; box-shadow:0 4px 20px -2px rgba(59,42,32,0.08);">
+                            <div style="font-size:0.85rem; color:#5C4A3E; margin-bottom:0.3rem;">Share this secret code with your group to join:</div>
                             <div style="font-family:'Fraunces',Georgia,serif; font-size:2.2rem; font-weight:700;
-                                        color:#5C0203; letter-spacing:0.08em;">{room_display_code}</div>
+                                        color:#7A1F2B; letter-spacing:0.08em;">{room_display_code}</div>
                         </div>
                         """,
                         unsafe_allow_html=True,
@@ -148,8 +148,8 @@ else:
                 created_val = format_datetime(room["createdAt"]) if room.get("createdAt") else "Recent"
                 st.markdown(
                     f"""
-                    <div style="font-size:0.88rem; color:#6B5A47; margin-bottom:0.8rem;">
-                        <strong>Room Code:</strong> <code style="background:#FAF6F0; border:1px solid #A39670; border-radius:8px; padding:2px 8px; color:#5C0203; font-weight:700;">{code_val}</code> &nbsp;|&nbsp;
+                    <div style="font-size:0.88rem; color:#5C4A3E; margin-bottom:0.8rem;">
+                        <strong>Room Code:</strong> <code style="background:#F7F2E8; border:1px solid #E3D6BE; border-radius:8px; padding:2px 8px; color:#7A1F2B; font-weight:700;">{code_val}</code> &nbsp;|&nbsp;
                         <strong>Your Role:</strong> {badge_html("creator")} &nbsp;|&nbsp;
                         <strong>Created:</strong> {created_val}
                     </div>
@@ -194,8 +194,8 @@ else:
                 created_val = format_datetime(room["createdAt"]) if room.get("createdAt") else "Recent"
                 st.markdown(
                     f"""
-                    <div style="font-size:0.88rem; color:#6B5A47; margin-bottom:0.8rem;">
-                        <strong>Room Code:</strong> <code style="background:#FAF6F0; border:1px solid #A39670; border-radius:8px; padding:2px 8px; color:#5C0203; font-weight:700;">{code_val}</code> &nbsp;|&nbsp;
+                    <div style="font-size:0.88rem; color:#5C4A3E; margin-bottom:0.8rem;">
+                        <strong>Room Code:</strong> <code style="background:#F7F2E8; border:1px solid #E3D6BE; border-radius:8px; padding:2px 8px; color:#7A1F2B; font-weight:700;">{code_val}</code> &nbsp;|&nbsp;
                         <strong>Your Role:</strong> {badge_html('member')} &nbsp;|&nbsp;
                         <strong>Created:</strong> {created_val}
                     </div>

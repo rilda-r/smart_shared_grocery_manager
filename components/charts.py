@@ -2,6 +2,7 @@
 components/charts.py
 ====================
 Matplotlib chart components for GrocEase.
+Shared Kitchen Counter aesthetic design.
 
 All charts handle empty data gracefully.
 Uses the GrocEase colour palette.
@@ -15,31 +16,59 @@ import matplotlib.patches as mpatches
 import streamlit as st
 from collections import defaultdict
 
-# Palette
-OXBLOOD      = "#5C0203"  # Primary highlights & titles
-CHAMPAGNE    = "#D9C4B1"  # Canvas warm base
-EMERALD_SAGE = "#4D4828"  # Success & secondary accents
-ESPRESSO     = "#372713"  # Text & dark elements
-VINTAGE_ROSE = "#A39670"  # Subtle tags, borders
-SURFACE      = "#FFFFFF"  # Crisp card background
+# GrocEase "Shared Kitchen Counter" Palette
+BURGUNDY       = "#7A1F2B"  # Primary highlights, spendings & titles
+SAGE           = "#6B8F71"  # Success, saved amounts, healthy states
+OCHRE          = "#C8963E"  # Warnings, limits, pending states
+OXBLOOD        = "#8C1C13"  # Over budget, debts, errors
+DEEP_CHOCOLATE = "#2A1D16"  # Text & labels
+CHOCOLATE      = "#3B2A20"  # Dark accent
+CREAM          = "#FBF6EC"  # Chart background
+CREAM_BORDER   = "#E3D6BE"  # Chart border & spines
+SAND           = "#F3EBDD"  # Canvas background
 
-CATEGORY_COLORS = [OXBLOOD, EMERALD_SAGE, VINTAGE_ROSE, "#853629", "#635D39", "#BD7B66", "#372713"]
+# Canonical category color tokens for GrocEase
+CATEGORY_COLOR_MAP = {
+    "Food": "#7A1F2B",          # Signature Burgundy
+    "Transport": "#6B8F71",     # Sage Green
+    "Entertainment": "#C8963E", # Warm Amber / Ochre
+    "Utilities": "#3A6073",     # Deep Slate Blue
+    "Healthcare": "#8C1C13",    # Crimson Oxblood
+    "Shopping": "#A36B4F",      # Warm Terracotta
+    "Other": "#5C4A3E",         # Deep Earth Chocolate
+}
+
+FALLBACK_PALETTE = [
+    "#7A1F2B", "#6B8F71", "#C8963E", "#3A6073", "#8C1C13",
+    "#A36B4F", "#5C4A3E", "#6F7A3A", "#9E2A38", "#4A5859",
+]
+
+
+def get_category_color(category: str) -> str:
+    """Return a strictly deterministic color token for any given expense category."""
+    if not category:
+        return "#5C4A3E"
+    clean_cat = category.strip()
+    if clean_cat in CATEGORY_COLOR_MAP:
+        return CATEGORY_COLOR_MAP[clean_cat]
+    idx = abs(hash(clean_cat)) % len(FALLBACK_PALETTE)
+    return FALLBACK_PALETTE[idx]
 
 
 def _base_fig(figsize=(6, 4)):
     fig, ax = plt.subplots(figsize=figsize)
-    fig.patch.set_facecolor(SURFACE)
-    ax.set_facecolor(SURFACE)
-    ax.tick_params(colors=ESPRESSO, labelsize=9)
+    fig.patch.set_facecolor(CREAM)
+    ax.set_facecolor(CREAM)
+    ax.tick_params(colors=DEEP_CHOCOLATE, labelsize=9)
     for spine in ax.spines.values():
-        spine.set_edgecolor(CHAMPAGNE)
+        spine.set_edgecolor(CREAM_BORDER)
         spine.set_linewidth(1.0)
     return fig, ax
 
 
 def render_category_pie_chart(expenses: list):
     """
-    Pie chart of spending by category.
+    Pie chart of spending by category with strict synchronized color tokens.
     expenses: list of PersonalExpense dicts
     """
     if not expenses:
@@ -50,9 +79,11 @@ def render_category_pie_chart(expenses: list):
     for e in expenses:
         totals[e["category"]] += e["amount"]
 
-    labels = list(totals.keys())
-    values = list(totals.values())
-    colors = CATEGORY_COLORS[: len(labels)]
+    # Sort categories descending by amount for clean hierarchy
+    sorted_items = sorted(totals.items(), key=lambda x: x[1], reverse=True)
+    labels = [k for k, _ in sorted_items]
+    values = [v for _, v in sorted_items]
+    colors = [get_category_color(cat) for cat in labels]
 
     fig, ax = _base_fig(figsize=(5, 5))
     wedges, texts, autotexts = ax.pie(
@@ -61,24 +92,24 @@ def render_category_pie_chart(expenses: list):
         colors=colors,
         autopct="%1.0f%%",
         startangle=140,
-        pctdistance=0.82,
-        wedgeprops={"linewidth": 1.5, "edgecolor": SURFACE},
+        pctdistance=0.80,
+        wedgeprops={"linewidth": 1.5, "edgecolor": CREAM},
     )
     for at in autotexts:
         at.set_fontsize(9)
-        at.set_color(SURFACE)
+        at.set_color("#FFFDF9")
         at.set_fontweight("bold")
 
     ax.legend(
         wedges,
         [f"{l}  ₹{totals[l]:,.0f}" for l in labels],
         loc="lower center",
-        bbox_to_anchor=(0.5, -0.12),
+        bbox_to_anchor=(0.5, -0.15),
         ncol=2,
         fontsize=8,
         framealpha=0,
     )
-    ax.set_title("Spending by Category", fontsize=11, color=OXBLOOD, fontweight="bold", pad=10)
+    ax.set_title("Spending by Category", fontsize=11, color=BURGUNDY, fontweight="bold", pad=10)
     plt.tight_layout()
     st.pyplot(fig)
     plt.close(fig)
@@ -86,34 +117,81 @@ def render_category_pie_chart(expenses: list):
 
 def render_monthly_bar_chart(expenses: list):
     """
-    Bar chart of monthly total spending.
+    Stacked bar chart of monthly spending broken down by category,
+    enforcing strict color mapping consistency matching the category pie chart.
     expenses: list of PersonalExpense dicts
     """
     if not expenses:
         st.info("No expense data to display yet.")
         return
 
-    monthly = defaultdict(float)
+    # Aggregate monthly spending broken down by category
+    # monthly_cat_spending[month][category] = amount
+    monthly_cat = defaultdict(lambda: defaultdict(float))
+    all_categories = set()
     for e in expenses:
-        month = e["expenseDate"][:7]  # "YYYY-MM"
-        monthly[month] += e["amount"]
+        m = e["expenseDate"][:7]  # "YYYY-MM"
+        cat = e["category"]
+        monthly_cat[m][cat] += e["amount"]
+        all_categories.add(cat)
 
-    months = sorted(monthly.keys())
-    values = [monthly[m] for m in months]
+    months = sorted(monthly_cat.keys())
     labels = [m[5:] + "/" + m[2:4] for m in months]  # "MM/YY"
+    cat_list = sorted(list(all_categories))
 
-    fig, ax = _base_fig(figsize=(6, 3.5))
-    bars = ax.bar(labels, values, color=OXBLOOD, edgecolor=SURFACE, linewidth=0.8, width=0.55)
-    ax.set_ylabel("Amount (₹)", fontsize=9, color=ESPRESSO)
-    ax.set_title("Monthly Spending", fontsize=11, color=OXBLOOD, fontweight="bold")
-    ax.set_ylim(0, max(values) * 1.2)
-    for bar, val in zip(bars, values):
-        ax.text(
-            bar.get_x() + bar.get_width() / 2,
-            bar.get_height() + max(values) * 0.02,
-            f"₹{val:,.0f}",
-            ha="center", va="bottom", fontsize=8, color=ESPRESSO,
+    fig, ax = _base_fig(figsize=(6, 3.8))
+    width = 0.52
+
+    # Bottom accumulator for stacking
+    bottoms = [0.0] * len(months)
+    used_categories = []
+
+    for cat in cat_list:
+        cat_values = [monthly_cat[m].get(cat, 0.0) for m in months]
+        # Only plot category if it has non-zero values
+        if any(v > 0 for v in cat_values):
+            color = get_category_color(cat)
+            ax.bar(
+                labels,
+                cat_values,
+                width,
+                bottom=bottoms,
+                label=cat,
+                color=color,
+                edgecolor=CREAM,
+                linewidth=0.8,
+            )
+            used_categories.append(cat)
+            for i in range(len(months)):
+                bottoms[i] += cat_values[i]
+
+    # Display total amount text above each month's stacked bar
+    max_total = max(bottoms) if bottoms else 1.0
+    ax.set_ylim(0, max_total * 1.25)
+    for idx, (lbl, tot) in enumerate(zip(labels, bottoms)):
+        if tot > 0:
+            ax.text(
+                idx,
+                tot + (max_total * 0.025),
+                f"₹{tot:,.0f}",
+                ha="center",
+                va="bottom",
+                fontsize=8,
+                fontweight="bold",
+                color=DEEP_CHOCOLATE,
+            )
+
+    ax.set_ylabel("Amount (₹)", fontsize=9, color=DEEP_CHOCOLATE)
+    ax.set_title("Monthly Spending by Category", fontsize=11, color=BURGUNDY, fontweight="bold")
+
+    if used_categories:
+        ax.legend(
+            loc="upper right",
+            fontsize=8,
+            ncol=min(len(used_categories), 3),
+            framealpha=0,
         )
+
     plt.tight_layout()
     st.pyplot(fig)
     plt.close(fig)
@@ -138,17 +216,17 @@ def render_budget_utilization_chart(budgets: list, spending_by_category: dict):
     y = range(len(categories))
     fig, ax = _base_fig(figsize=(6, max(2.5, len(categories) * 0.8)))
 
-    ax.barh(list(y), limits,    color=VINTAGE_ROSE, edgecolor=CHAMPAGNE, linewidth=0.8, label="Limit",   height=0.45)
-    ax.barh(list(y), spendings, color=OXBLOOD,      edgecolor=SURFACE,   linewidth=0.8, label="Spent",   height=0.45)
+    ax.barh(list(y), limits,    color=OCHRE,    edgecolor=CREAM_BORDER, linewidth=0.8, label="Limit",   height=0.45)
+    ax.barh(list(y), spendings, color=BURGUNDY, edgecolor=CREAM,        linewidth=0.8, label="Spent",   height=0.45)
 
     ax.set_yticks(list(y))
     ax.set_yticklabels(categories, fontsize=9)
-    ax.set_xlabel("Amount (₹)", fontsize=9, color=ESPRESSO)
-    ax.set_title("Budget Utilization", fontsize=11, color=OXBLOOD, fontweight="bold")
+    ax.set_xlabel("Amount (₹)", fontsize=9, color=DEEP_CHOCOLATE)
+    ax.set_title("Budget Utilization", fontsize=11, color=BURGUNDY, fontweight="bold")
 
     legend_patches = [
-        mpatches.Patch(color=VINTAGE_ROSE, label="Limit"),
-        mpatches.Patch(color=OXBLOOD,      label="Spent"),
+        mpatches.Patch(color=OCHRE,    label="Limit"),
+        mpatches.Patch(color=BURGUNDY, label="Spent"),
     ]
     ax.legend(handles=legend_patches, fontsize=8, framealpha=0, loc="lower right")
     plt.tight_layout()
@@ -175,12 +253,12 @@ def render_monthly_history_chart(history_records: list):
     width = 0.25
 
     fig, ax = _base_fig(figsize=(7, 3.8))
-    ax.bar(x - width, budgets, width, label="Budget", color=VINTAGE_ROSE, edgecolor=SURFACE)
-    ax.bar(x,         spents,  width, label="Spent",  color=OXBLOOD,      edgecolor=SURFACE)
-    ax.bar(x + width, saveds,  width, label="Saved",  color=EMERALD_SAGE, edgecolor=SURFACE)
+    ax.bar(x - width, budgets, width, label="Budget", color=OCHRE,    edgecolor=CREAM)
+    ax.bar(x,         spents,  width, label="Spent",  color=BURGUNDY, edgecolor=CREAM)
+    ax.bar(x + width, saveds,  width, label="Saved",  color=SAGE,     edgecolor=CREAM)
 
-    ax.set_ylabel("Amount (₹)", fontsize=9, color=ESPRESSO)
-    ax.set_title("Historical Budget vs. Spent vs. Saved", fontsize=11, color=OXBLOOD, fontweight="bold")
+    ax.set_ylabel("Amount (₹)", fontsize=9, color=DEEP_CHOCOLATE)
+    ax.set_title("Historical Budget vs. Spent vs. Saved", fontsize=11, color=BURGUNDY, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels(months, fontsize=9)
     ax.legend(fontsize=8, framealpha=0)
@@ -205,15 +283,14 @@ def render_month_end_summary_chart(category_breakdown: dict):
     height = 0.35
 
     fig, ax = _base_fig(figsize=(6.5, max(2.8, len(categories) * 0.75)))
-    ax.barh(y - height/2, spent_vals, height, label="Used (Spent)", color=OXBLOOD,      edgecolor=SURFACE)
-    ax.barh(y + height/2, saved_vals, height, label="Saved",        color=EMERALD_SAGE, edgecolor=SURFACE)
+    ax.barh(y - height/2, spent_vals, height, label="Used (Spent)", color=BURGUNDY, edgecolor=CREAM)
+    ax.barh(y + height/2, saved_vals, height, label="Saved",        color=SAGE,     edgecolor=CREAM)
 
     ax.set_yticks(y)
     ax.set_yticklabels(categories, fontsize=9)
-    ax.set_xlabel("Amount (₹)", fontsize=9, color=ESPRESSO)
-    ax.set_title("Month-End Breakdown: Used vs. Saved", fontsize=11, color=OXBLOOD, fontweight="bold")
+    ax.set_xlabel("Amount (₹)", fontsize=9, color=DEEP_CHOCOLATE)
+    ax.set_title("Month-End Breakdown: Used vs. Saved", fontsize=11, color=BURGUNDY, fontweight="bold")
     ax.legend(fontsize=8, framealpha=0, loc="lower right")
     plt.tight_layout()
     st.pyplot(fig)
     plt.close(fig)
-

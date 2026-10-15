@@ -14,7 +14,7 @@ import streamlit as st
 from style import apply_base_style
 from utils.session import require_auth, get_current_user_id, get_current_room_id, get_current_room_name
 from utils.formatting import format_currency, format_datetime, badge_html
-from components.sidebar import render_sidebar
+from components.sidebar import render_sidebar, render_room_selector
 from components.cards import render_metric_card, render_empty_state
 from components.payment_table import render_payment_table
 from mock.mock_api import (
@@ -40,20 +40,30 @@ apply_base_style()
 require_auth()
 render_sidebar()
 
+# ── Select Room Component at top ──────────────────────────────────────────────
+col_title, col_sel = st.columns([1.6, 1], gap="medium")
+with col_title:
+    st.markdown("# 💳 Payments")
+with col_sel:
+    st.write("")
+    render_room_selector(key_prefix="payments_page")
+
 user_id   = get_current_user_id()
 room_id   = get_current_room_id()
 room_name = get_current_room_name()
 
-st.markdown("# 💳 Payments")
-
 if not room_id:
-    render_empty_state("🏠", "No room selected", "Please select a room first.")
-    if st.button("Go to Rooms"):
-        st.switch_page("pages/07_Rooms.py")
+    render_empty_state("🏠", "No room selected", "Please select a room from the dropdown above to view and settle payments.")
     st.stop()
 
-st.markdown(f"<p style='color:#5B6459; margin-top:-0.8rem;'>Room: <strong>{room_name}</strong></p>", unsafe_allow_html=True)
-st.markdown("<hr style='border-color:#D8D0BE; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
+st.markdown(
+    f"""
+    <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:14px; padding:0.6rem 1rem; margin-bottom:1.2rem;">
+        <span style="color:#5C4A3E; font-size:0.95rem;">Active Room: <strong style="color:#2A1D16;">{room_name}</strong></span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ── Expense split preview (from bill scanning flow) ───────────────────────────
 split_bill_id = st.session_state.pop("split_bill_id", None)
@@ -63,10 +73,10 @@ if split_bill_id:
         st.markdown("### 🧾 Expense Split Preview")
         st.markdown(
             f"""
-            <div style="background:#E7EFE6; border:1px solid #C3D6C6; border-radius:6px;
-                        padding:0.8rem 1.2rem; margin-bottom:1rem;">
+            <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:18px;
+                        padding:1rem 1.4rem; margin-bottom:1rem; box-shadow:0 4px 20px -2px rgba(59,42,32,0.08);">
                 <strong>{bill['fileName']}</strong> — Total:
-                <span style="font-family:'Fraunces',serif; font-weight:700; color:#A97A1F;">
+                <span style="font-family:'Fraunces',serif; font-weight:700; color:#7A1F2B;">
                     {format_currency(bill['totalAmount'])}
                 </span>
             </div>
@@ -83,9 +93,9 @@ if split_bill_id:
                     st.markdown(
                         f"""
                         <div style="display:flex; justify-content:space-between;
-                                    padding:0.5rem 0.8rem; border-bottom:1px solid #F0F0F0;">
+                                    padding:0.6rem 0.8rem; border-bottom:1px solid #E3D6BE;">
                             <div>👤 {get_username(uid)}</div>
-                            <div style="font-weight:600; color:#1F4C3D;">{format_currency(amt)}</div>
+                            <div style="font-weight:700; color:#7A1F2B; font-variant-numeric:tabular-nums;">{format_currency(amt)}</div>
                         </div>
                         """,
                         unsafe_allow_html=True,
@@ -100,9 +110,9 @@ if split_bill_id:
                 st.markdown(
                     f"""
                     <div style="display:flex; justify-content:space-between;
-                                padding:0.5rem 0.8rem; border-bottom:1px solid #F0F0F0;">
+                                padding:0.6rem 0.8rem; border-bottom:1px solid #E3D6BE;">
                         <div>👤 {get_username(uid)}</div>
-                        <div style="font-weight:600; color:#1F4C3D;">{format_currency(amt)}</div>
+                        <div style="font-weight:700; color:#7A1F2B; font-variant-numeric:tabular-nums;">{format_currency(amt)}</div>
                     </div>
                     """,
                     unsafe_allow_html=True,

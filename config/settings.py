@@ -59,6 +59,11 @@ class Settings:
     db_url: str = ""
     db_sslmode: str = "prefer"
     dev_mode: bool = True
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = field(default="", repr=False)
+    smtp_sender_email: str = ""
 
 
 def _int_env(name: str, default: int) -> int:
@@ -76,8 +81,29 @@ def get_settings() -> Settings:
         or os.environ.get("DATABASE_URL")
         or ""
     )
-    dev_mode_str = os.environ.get("GROCEASE_DEV_MODE", "true").lower()
+    dev_mode_str = os.environ.get("GROCEASE_DEV_MODE", "false").lower()
     dev_mode = dev_mode_str in ("true", "1", "yes", "on")
+
+    smtp_host = (
+        os.environ.get("SMTP_HOST")
+        or os.environ.get("GROCEASE_SMTP_HOST", "")
+    ).strip()
+    smtp_port = _int_env("SMTP_PORT", _int_env("GROCEASE_SMTP_PORT", 587))
+    smtp_user = (
+        os.environ.get("SMTP_USER")
+        or os.environ.get("GROCEASE_SMTP_USER", "")
+    ).strip()
+    smtp_password = (
+        os.environ.get("SMTP_PASSWORD")
+        or os.environ.get("GROCEASE_SMTP_PASSWORD", "")
+    ).strip()
+    smtp_sender_email = (
+        os.environ.get("SMTP_SENDER_EMAIL")
+        or os.environ.get("GROCEASE_SMTP_SENDER_EMAIL")
+        or os.environ.get("SMTP_FROM")
+        or smtp_user
+        or "noreply@grocease.app"
+    ).strip()
 
     return Settings(
         db_host=os.environ.get("GROCEASE_DB_HOST") or os.environ.get("SUPABASE_DB_HOST", "localhost"),
@@ -95,5 +121,10 @@ def get_settings() -> Settings:
         db_url=db_url,
         db_sslmode=os.environ.get("GROCEASE_DB_SSLMODE", "prefer"),
         dev_mode=dev_mode,
+        smtp_host=smtp_host,
+        smtp_port=smtp_port,
+        smtp_user=smtp_user,
+        smtp_password=smtp_password,
+        smtp_sender_email=smtp_sender_email,
     )
 

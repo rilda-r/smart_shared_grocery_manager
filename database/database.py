@@ -180,14 +180,23 @@ def set_otp(email: str, otp_code: str, expires_at: str):
 
 
 def mark_verified(email: str):
+    clean_email = email.strip().lower()
     execute(
         """
         UPDATE users
         SET is_verified = TRUE, otp_code = NULL, otp_expires_at = NULL
         WHERE LOWER(email) = %s
         """,
-        (email.strip().lower(),),
+        (clean_email,),
     )
+    # Post-Registration Trigger: Automatically send dedicated Welcome onboarding email
+    try:
+        user = query_one("SELECT full_name, username FROM users WHERE LOWER(email) = %s", (clean_email,))
+        name = (user.get("full_name") or user.get("username") or "Friend") if user else "Friend"
+        from services.email_service import send_welcome_email
+        send_welcome_email(clean_email, name)
+    except Exception as exc:
+        print(f"[EVENT HOOK ERROR] Failed firing post-registration welcome hook: {exc}")
 
 
 def clear_otp(email: str):
@@ -272,6 +281,16 @@ def delete_user_account(user_identifier):
         return False
 
     uid = user["id"]
+
+    # Account Deletion Trigger: Immediately prior to final deletion, dispatch formal confirmation email
+    try:
+        user_email = user.get("email")
+        user_name = user.get("full_name") or user.get("username") or "Valued User"
+        if user_email:
+            from services.email_service import send_account_deleted_email
+            send_account_deleted_email(user_email, user_name)
+    except Exception as exc:
+        print(f"[EVENT HOOK ERROR] Failed firing account deletion email hook: {exc}")
 
     with get_cursor() as cur:
         # Delete related payments
