@@ -145,6 +145,7 @@ with left_col:
         for room in my_rooms:
             pending_in_room = sum(1 for i in all_items if i["roomId"] == room["id"] and i["status"] == "pending")
             st.markdown(
+                f"""
                 <div style="background:#FFFFFF; border:1px solid rgba(163, 150, 112, 0.35); border-left:4px solid #5C0203;
                             border-radius:16px; padding:1.1rem 1.3rem; margin-bottom:0.75rem; box-shadow:0 4px 14px rgba(55, 39, 19, 0.04);">
                     <div style="font-weight:700; color:#372713; font-size:1.02rem;">{room['name']}</div>

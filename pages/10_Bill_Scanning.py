@@ -179,8 +179,10 @@ if st.session_state["scan_data"] is None:
                     "tax": extraction.get("tax", Decimal("0.00")),
                     "discount": extraction.get("discount", Decimal("0.00")),
                     "other_charges": extraction.get("other_charges", Decimal("0.00")),
+                    "round_off": extraction.get("round_off", Decimal("0.00")),
                     "total": extraction.get("total", Decimal("0.00")),
                     "engine": extraction.get("engine"),
+                    "gemini_error": extraction.get("gemini_error"),
                     "ocr_success": extraction.get("success", False),
                     "ocr_error": extraction.get("error"),
                     "tax_split_mode": "proportional",
@@ -229,8 +231,19 @@ if step == 2:
     if not scan.get("ocr_success"):
         st.error(f"⚠️ {scan.get('ocr_error') or 'Text extraction failed. Please enter the items manually below.'}")
     else:
-        engine_label = "Gemini Structured Vision" if scan.get("engine") == "gemini" else "Fallback Engine"
-        st.success(f"✅ Extracted with **{engine_label}**! Please verify quantities and prices.")
+        engine = scan.get("engine")
+        engine_label = {
+            "gemini": "Gemini Structured Vision",
+            "pdf_text": "PDF Text Layer (Gemini unavailable)",
+            "tesseract_fallback": "Tesseract Fallback (Gemini unavailable)",
+        }.get(engine, "Fallback Engine")
+        if engine == "gemini":
+            st.success(f"✅ Extracted with **{engine_label}**! Please verify quantities and prices.")
+        else:
+            st.warning(f"⚠️ Extracted with **{engine_label}**. Please review carefully.")
+    if scan.get("gemini_error"):
+        with st.expander("Gemini error details"):
+            st.code(str(scan["gemini_error"]))
 
     # Receipt Metadata Header
     m_col1, m_col2, m_col3 = st.columns(3)
@@ -276,6 +289,8 @@ if step == 2:
             "quantity": to_decimal(qty_val, quant=Decimal("0.001")),
             "unit_price": to_decimal(unit_val),
             "line_total": to_decimal(tot_val),
+            "item_discount": it.get("item_discount", Decimal("0.00")),
+            "gst_rate": it.get("gst_rate", Decimal("0.00")),
         })
 
     if del_idx is not None:
@@ -314,7 +329,7 @@ if step == 2:
     c_sub = sum(i["line_total"] for i in scan["items"])
     scan["subtotal"] = c_sub
 
-    tc1, tc2, tc3, tc4, tc5 = st.columns(5)
+    tc1, tc2, tc3, tc4, tc5, tc6 = st.columns(6)
     with tc1:
         st.markdown(f"**Items Subtotal**<br><span style='font-size:1.2rem; font-weight:700;'>{format_currency(c_sub)}</span>", unsafe_allow_html=True)
     with tc2:
@@ -327,12 +342,16 @@ if step == 2:
         chg_in = st.number_input("Other Charges (₹)", value=float(scan["other_charges"]), min_value=0.0, step=1.0, format="%.2f")
         scan["other_charges"] = to_decimal(chg_in)
     with tc5:
+        ro_in = st.number_input("Round-off (₹)", value=float(scan.get("round_off", 0) or 0), step=0.01, format="%.2f")
+        scan["round_off"] = to_decimal(ro_in)
+    with tc6:
         printed_tot_in = st.number_input("Printed Total (₹)", value=float(scan["total"]), min_value=0.0, step=1.0, format="%.2f")
         scan["total"] = to_decimal(printed_tot_in)
 
     # Validate math
     is_valid, calc_tot, math_warn = validate_receipt_math(
-        scan["items"], scan["tax"], scan["discount"], scan["other_charges"], scan["total"]
+        scan["items"], scan["tax"], scan["discount"], scan["other_charges"], scan["total"],
+        round_off=scan.get("round_off", Decimal("0.00")),
     )
     if not is_valid:
         st.warning(math_warn)

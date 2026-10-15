@@ -9,7 +9,7 @@ from utils.formatting import format_currency, format_datetime, badge_html
 from mock.mock_data import get_username
 
 
-def render_payment_table(payments: list, current_user_id: int, on_settle=None, on_report=None):
+def render_payment_table(payments: list, current_user_id: int, on_settle=None, on_report=None, key_prefix: str = "pay"):
     """
     Render payment records.
 
@@ -18,6 +18,7 @@ def render_payment_table(payments: list, current_user_id: int, on_settle=None, o
         current_user_id: logged-in user id
         on_settle: callback(payment_id)
         on_report: callback(payment_id)
+        key_prefix: unique prefix per call so widget keys never collide across tabs
     """
     if not payments:
         st.markdown(
@@ -54,10 +55,10 @@ def render_payment_table(payments: list, current_user_id: int, on_settle=None, o
             if status == "pending":
                 # Payer can settle; either party can report
                 if p["payerUserId"] == current_user_id and on_settle:
-                    if st.button("✅ Settle", key=f"settle_{p['id']}"):
+                    if st.button("✅ Settle", key=f"{key_prefix}_settle_{p['id']}"):
                         on_settle(p["id"])
                 if on_report:
-                    if st.button("⚠️ Report", key=f"report_{p['id']}"):
+                    if st.button("⚠️ Report", key=f"{key_prefix}_report_{p['id']}"):
                         on_report(p["id"])
             else:
                 st.write("—")
