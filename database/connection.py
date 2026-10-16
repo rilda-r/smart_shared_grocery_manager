@@ -212,6 +212,14 @@ def _migrate_users_table(cursor) -> None:
             CONSTRAINT fk_budget_hist_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )""",
         "CREATE INDEX IF NOT EXISTS idx_budget_hist_user ON monthly_budget_history (user_id)",
+        # bill_items: per-item tax/discount/HSN columns for split feature
+        "ALTER TABLE bill_items ADD COLUMN IF NOT EXISTS item_discount DECIMAL(10,2) NOT NULL DEFAULT 0.00",
+        "ALTER TABLE bill_items ADD COLUMN IF NOT EXISTS gst_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00",
+        "ALTER TABLE bill_items ADD COLUMN IF NOT EXISTS hsn VARCHAR(20) NULL",
+        "ALTER TABLE bill_items ADD COLUMN IF NOT EXISTS cgst DECIMAL(10,2) NOT NULL DEFAULT 0.00",
+        "ALTER TABLE bill_items ADD COLUMN IF NOT EXISTS sgst DECIMAL(10,2) NOT NULL DEFAULT 0.00",
+        # payments: optional receipt_id link
+        "ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_id INT NULL",
     ]
 
     for m in migrations:
