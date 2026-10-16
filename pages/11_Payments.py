@@ -17,10 +17,15 @@ from utils.formatting import format_currency, format_datetime, badge_html
 from components.sidebar import render_sidebar, render_room_selector
 from components.cards import render_metric_card, render_empty_state
 from components.payment_table import render_payment_table
+from database.database import (
+    get_room_payments_live,
+    settle_payment_live,
+    report_payment_live,
+)
 from mock.mock_api import (
-    get_payments,
-    settle_payment,
-    report_payment,
+    get_payments as mock_get_payments,
+    settle_payment as mock_settle_payment,
+    report_payment as mock_report_payment,
     get_bill,
     get_bill_items,
     calculate_bill_split,
@@ -28,6 +33,25 @@ from mock.mock_api import (
     get_room_members,
 )
 from mock.mock_data import get_username
+
+def get_payments(room_id):
+    live = get_room_payments_live(room_id)
+    if live:
+        return live
+    return mock_get_payments(room_id)
+
+def settle_payment(payment_id):
+    try:
+        settle_payment_live(payment_id)
+    except Exception:
+        mock_settle_payment(payment_id)
+
+def report_payment(payment_id):
+    try:
+        report_payment_live(payment_id)
+    except Exception:
+        mock_report_payment(payment_id)
+
 
 st.set_page_config(
     page_title="Payments — GrocEase",
@@ -160,16 +184,16 @@ def report_handler(payment_id):
     st.rerun()
 
 with tab_all:
-    render_payment_table(payments, user_id, on_settle=settle_handler, on_report=report_handler)
+    render_payment_table(payments, user_id, on_settle=settle_handler, on_report=report_handler, key_prefix="all")
 
 with tab_owe:
     owe_list = [p for p in payments if p["payerUserId"] == user_id and p["paymentStatus"] == "pending"]
-    render_payment_table(owe_list, user_id, on_settle=settle_handler, on_report=report_handler)
+    render_payment_table(owe_list, user_id, on_settle=settle_handler, on_report=report_handler, key_prefix="owe")
 
 with tab_receive:
     receive_list = [p for p in payments if p["payeeUserId"] == user_id and p["paymentStatus"] == "pending"]
-    render_payment_table(receive_list, user_id)
+    render_payment_table(receive_list, user_id, key_prefix="recv")
 
 with tab_history:
     history = [p for p in payments if p["paymentStatus"] in ("settled", "reported")]
-    render_payment_table(history, user_id)
+    render_payment_table(history, user_id, key_prefix="hist")
