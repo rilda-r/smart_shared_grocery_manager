@@ -4,6 +4,7 @@ pages/10_Bill_Scanning.py
 End-to-end receipt scanning and expense attribution powered by Google Gemini (google-genai)
 and Supabase PostgreSQL. Supports PDF & image receipts, fuzzy grocery list matching,
 multi-requester splits, extra items management, and atomic database settlement.
+Styled in the warm Shared Kitchen Counter aesthetic.
 """
 
 import sys
@@ -20,11 +21,13 @@ from utils.session import (
     get_current_user_id,
     get_current_room_id,
     get_current_room_name,
+    set_current_room,
 )
 from utils.formatting import format_currency, badge_html
 from components.sidebar import render_sidebar, render_room_selector
 from components.cards import render_empty_state
 from database.database import (
+    get_user_joined_rooms,
     get_room_members_with_identities,
     get_live_grocery_items,
 )
@@ -33,7 +36,8 @@ from services.receipt_ocr_service import (
     validate_receipt_math,
     to_decimal,
 )
-from services.item_matching_service import match_receipt_items
+from services.item_matching_service import match_receipt_items, select_matchable_grocery_items
+from database.connection import query_all
 from services.receipt_split_service import calculate_receipt_split
 from services.receipt_storage_service import store_receipt_file
 from services.receipt_service import confirm_receipt_transaction
@@ -53,6 +57,12 @@ render_sidebar()
 col_title, col_sel = st.columns([1.6, 1], gap="medium")
 with col_title:
     st.markdown("# 📷 Receipt Scanning & Split")
+    st.markdown(
+        "<p style='color:#5C4A3E; margin-top:-0.8rem; font-size:0.95rem;'>"
+        "Scan grocery receipts with Gemini AI, match requested items to room members, and split expenses automatically."
+        "</p>",
+        unsafe_allow_html=True,
+    )
 with col_sel:
     st.write("")
     render_room_selector(key_prefix="bill_scanning_page")
@@ -69,19 +79,12 @@ if not room_id:
     )
     st.stop()
 
-st.markdown(
-    "<p style='color:#5C4A3E; margin-top:-0.8rem; font-size:0.95rem;'>"
-    "Scan grocery bills, auto-attribute requested items to room members, and split expenses effortlessly."
-    "</p>",
-    unsafe_allow_html=True,
-)
-
-# Reset any in-progress scan when the active room changes
-if st.session_state.get("scan_room_id") != room_id:
-    st.session_state["scan_room_id"] = room_id
+# Detect room switch and reset scan flow
+if st.session_state.get("bill_scanning_active_room_id") != room_id:
+    st.session_state["bill_scanning_active_room_id"] = room_id
     st.session_state["scan_data"] = None
     st.session_state["scan_step"] = 1
-    st.session_state["rematch_needed"] = True
+    st.session_state["matched_state"] = None
     st.session_state["confirmed_receipt_id"] = None
     st.session_state["is_submitting"] = False
 
@@ -93,20 +96,30 @@ room_member_ids = list(member_name_map.keys())
 all_grocery_items = get_live_grocery_items(room_id)
 pending_grocery_items = [g for g in all_grocery_items if g.get("status") == "pending"]
 
+# Items already bought 1/1 on the Shopping page are 'purchased', not 'pending' — still match them to the
+# member who asked for them, unless an earlier receipt already used them.
+try:
+    _billed_rows = query_all(
+        "SELECT DISTINCT ri.matched_grocery_item_id AS gid FROM receipt_items ri "
+        "JOIN receipts r ON r.id = ri.receipt_id "
+        "WHERE r.room_id = %s AND ri.matched_grocery_item_id IS NOT NULL",
+        (int(room_id),),
+    )
+    _billed_ids = {row["gid"] for row in _billed_rows}
+except Exception:
+    _billed_ids = set()
+matchable_grocery_items = select_matchable_grocery_items(all_grocery_items, _billed_ids)
+
+# Active room banner in warm aesthetic
 st.markdown(
     f"""
-    <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:14px; padding:0.6rem 1rem; margin-bottom:1.2rem;">
-        <span style="color:#5C4A3E; font-size:0.95rem;">
-            Active Room: <strong style="color:#2A1D16;">{room_name}</strong> &nbsp;|&nbsp;
-            Members: <strong style="color:#2A1D16;">{len(raw_members)}</strong> &nbsp;|&nbsp;
-            Pending Items: <strong style="color:#2A1D16;">{len(pending_grocery_items)}</strong>
-        </span>
+    <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:14px; padding:0.6rem 1.1rem; margin-bottom:1.2rem; display:flex; justify-content:space-between; align-items:center;">
+        <span style="color:#5C4A3E; font-size:0.95rem;">Active Room: <strong style="color:#2A1D16;">{room_name}</strong></span>
+        <span style="color:#5C4A3E; font-size:0.85rem;">Members: <strong style="color:#2A1D16;">{len(raw_members)}</strong> &nbsp;|&nbsp; Pending Grocery Items: <strong style="color:#2A1D16;">{len(pending_grocery_items)}</strong></span>
     </div>
     """,
     unsafe_allow_html=True,
 )
-
-st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Session State Initialization ─────────────────────────────────────────────
 if "scan_step" not in st.session_state:
@@ -118,12 +131,11 @@ if "confirmed_receipt_id" not in st.session_state:
 if "is_submitting" not in st.session_state:
     st.session_state["is_submitting"] = False
 
-
 # ── STEP 1: UPLOAD & PREVIEW ─────────────────────────────────────────────────
 if st.session_state["scan_data"] is None:
-    st.markdown("### Step 1 — Upload Receipt")
+    st.markdown("### 📤 Step 1 — Upload Receipt")
     
-    col_u1, col_u2 = st.columns([2, 1])
+    col_u1, col_u2 = st.columns([2, 1], gap="large")
     with col_u1:
         uploaded_file = st.file_uploader(
             "Upload receipt (JPEG, PNG, or PDF)",
@@ -140,13 +152,13 @@ if st.session_state["scan_data"] is None:
             st.warning("⚠️ Notice: You uploaded this exact receipt file previously.")
         
         with col_u2:
-            st.markdown("**Preview:**")
+            st.markdown("**Receipt Preview:**")
             if uploaded_file.name.lower().endswith(".pdf"):
                 st.info(f"📄 PDF Document: **{uploaded_file.name}** ({len(file_bytes) / 1024:.1f} KB)")
             else:
                 st.image(file_bytes, caption=uploaded_file.name, use_container_width=True)
 
-        if st.button("🔍 Scan & Extract Receipt", type="primary"):
+        if st.button("🔍 Scan & Extract Receipt", type="primary", use_container_width=True):
             st.session_state["last_uploaded_hash"] = file_hash
             with st.spinner("🤖 Processing receipt with Gemini Structured OCR..."):
                 # 1. Save to Supabase Storage or local fallback
@@ -180,13 +192,13 @@ if st.session_state["scan_data"] is None:
     else:
         st.markdown(
             """
-            <div style="border:2px dashed #E3D6BE; border-radius:18px; padding:3rem;
-                        text-align:center; color:#5C4A3E; background:#FFFDF9; margin-top:0.5rem;">
-                <div style="font-size:3rem;">🧾</div>
-                <div style="font-weight:700; font-size:1.1rem; color:#2A1D16; margin-top:0.5rem;">
+            <div style="border:2px dashed #E3D6BE; border-radius:18px; padding:2.8rem;
+                        text-align:center; color:#5C4A3E; background:#FFFDF9; box-shadow:0 2px 8px rgba(59,42,32,0.03); margin-top:0.6rem;">
+                <div style="font-size:3rem; margin-bottom:0.4rem;">🧾</div>
+                <div style="font-family:'Fraunces',Georgia,serif; font-size:1.15rem; font-weight:700; color:#2A1D16; margin-top:0.5rem;">
                     Drag & Drop your receipt here
                 </div>
-                <div style="font-size:0.85rem; margin-top:0.3rem;">Supports JPG, PNG, and multi-page PDF</div>
+                <div style="font-size:0.85rem; margin-top:0.3rem; color:#5C4A3E;">Supports JPG, PNG, and multi-page PDF</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -201,10 +213,10 @@ step = st.session_state.get("scan_step", 2)
 # Navigation breadcrumb
 st.markdown(
     f"""
-    <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1.2rem; font-size:0.9rem;">
-        <span style="font-weight:{'700; color:#7A1F2B' if step==2 else '400; color:#A39670'};">1. Review & Edit Items</span> &nbsp;→&nbsp;
-        <span style="font-weight:{'700; color:#7A1F2B' if step==3 else '400; color:#A39670'};">2. Item Attribution & Extras</span> &nbsp;→&nbsp;
-        <span style="font-weight:{'700; color:#7A1F2B' if step==4 else '400; color:#A39670'};">3. Summary & Confirm</span>
+    <div style="display:flex; gap:1.2rem; align-items:center; margin-bottom:1.4rem; font-size:0.92rem; background:#FFFDF9; border:1px solid #E3D6BE; border-radius:12px; padding:0.6rem 1.2rem;">
+        <span style="font-weight:{'700; color:#7A1F2B' if step==2 else '400; color:#8C7A6B'};">1. Review & Edit Items</span> &nbsp;→&nbsp;
+        <span style="font-weight:{'700; color:#7A1F2B' if step==3 else '400; color:#8C7A6B'};">2. Item Attribution & Extras</span> &nbsp;→&nbsp;
+        <span style="font-weight:{'700; color:#7A1F2B' if step==4 else '400; color:#8C7A6B'};">3. Summary & Confirm</span>
     </div>
     """,
     unsafe_allow_html=True,
@@ -239,7 +251,7 @@ if step == 2:
     with m_col2:
         scan["date"] = st.text_input("Receipt Date", value=scan.get("date") or "")
     with m_col3:
-        st.markdown(f"<div style='margin-top:1.8rem;'>File: <code>{scan.get('file_name')}</code></div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='margin-top:1.8rem; color:#5C4A3E;'>File: <code>{scan.get('file_name')}</code></div>", unsafe_allow_html=True)
 
     st.markdown("#### Item List")
 
@@ -310,7 +322,7 @@ if step == 2:
                     st.rerun()
 
     # Taxes, Charges, Discounts, and Total
-    st.markdown("<hr style='margin:1.5rem 0 1rem 0; border-color:#E3D6BE;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin:1.5rem 0 1rem 0; border:none; border-top:1.5px solid #E3D6BE;'>", unsafe_allow_html=True)
     st.markdown("#### Totals & Adjustments")
     
     c_sub = sum(i["line_total"] for i in scan["items"])
@@ -318,7 +330,7 @@ if step == 2:
 
     tc1, tc2, tc3, tc4, tc5, tc6 = st.columns(6)
     with tc1:
-        st.markdown(f"**Items Subtotal**<br><span style='font-size:1.2rem; font-weight:700;'>{format_currency(c_sub)}</span>", unsafe_allow_html=True)
+        st.markdown(f"**Items Subtotal**<br><span style='font-size:1.2rem; font-weight:700; color:#2A1D16;'>{format_currency(c_sub)}</span>", unsafe_allow_html=True)
     with tc2:
         tax_in = st.number_input("Tax / GST (₹)", value=float(scan["tax"]), min_value=0.0, step=1.0, format="%.2f")
         scan["tax"] = to_decimal(tax_in)
@@ -369,7 +381,7 @@ elif step == 3:
     # Run matching service if not yet computed or items modified
     if "matched_state" not in st.session_state or st.session_state.get("rematch_needed", True):
         matched_dict = match_receipt_items(
-            scan["items"], pending_grocery_items, raw_members, user_id
+            scan["items"], matchable_grocery_items, raw_members, user_id
         )
         st.session_state["matched_state"] = matched_dict
         st.session_state["rematch_needed"] = False
@@ -377,7 +389,8 @@ elif step == 3:
     mstate = st.session_state["matched_state"]
     matched_items = mstate["matched_items"]
     extra_items = mstate["extra_items"]
-    unmatched_grocery = mstate["unmatched_grocery_items"]
+    _pending_ids = {g["id"] for g in pending_grocery_items}
+    unmatched_grocery = [u for u in mstate["unmatched_grocery_items"] if u["id"] in _pending_ids]
 
     tab_matched, tab_extras, tab_unpurchased = st.tabs([
         f"🎯 Matched Grocery Items ({len(matched_items)})",
@@ -402,14 +415,14 @@ elif step == 3:
                 with st.container():
                     st.markdown(
                         f"""
-                        <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:14px; padding:0.8rem 1.2rem; margin-bottom:0.8rem;">
+                        <div style="background:#FFFDF9; border:1px solid #E3D6BE; border-radius:12px; padding:0.8rem 1.2rem; margin-bottom:0.8rem; box-shadow:0 2px 8px rgba(59,42,32,0.03);">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <div>
                                     <span style="font-weight:700; font-size:1.1rem; color:#2A1D16;">{item['name']}</span>
                                     &nbsp; <span style="color:#5C4A3E; font-size:0.85rem;">(Receipt Qty: {item['receipt_quantity']} @ {format_currency(item['unit_price'])} = <strong>{format_currency(item['line_total'])}</strong>)</span>
                                 </div>
                                 <div>
-                                    <span style="background:#F6ECD8; color:#7A1F2B; padding:0.2rem 0.6rem; border-radius:12px; font-size:0.8rem; font-weight:600;">
+                                    <span style="background:#FBF6EC; border:1px solid #E3D6BE; color:#7A1F2B; padding:0.2rem 0.6rem; border-radius:12px; font-size:0.8rem; font-weight:700;">
                                         Match: {item['matched_grocery_name']} ({int(item['match_score'])}%)
                                     </span>
                                 </div>
@@ -436,7 +449,7 @@ elif step == 3:
                             new_uid = st.selectbox(
                                 "Assigned Member",
                                 options=member_opts,
-                                format_func=lambda uid: f"👤 {member_name_map[uid]}",
+                                format_func=lambda uid: member_name_map[uid],
                                 index=curr_member_idx,
                                 key=f"mat_uid_{m_idx}_{a_idx}",
                             )
@@ -472,7 +485,7 @@ elif step == 3:
                                 f"</div>",
                                 unsafe_allow_html=True,
                             )
-                    st.markdown("<hr style='border-color:#E3D6BE; margin:0.5rem 0 1rem 0;'>", unsafe_allow_html=True)
+                    st.markdown("<hr style='border:none; border-top:1px solid #E3D6BE; margin:0.5rem 0 1rem 0;'>", unsafe_allow_html=True)
 
     # ── TAB 2: Extra Items (Your items purchased) ────────────────────────────
     with tab_extras:
@@ -511,7 +524,7 @@ elif step == 3:
                                 "quantity": e_item["quantity"],
                                 "amount": e_item["line_total"],
                             }]
-                            st.markdown("<div style='margin-top:1.5rem; color:#7A1F2B; font-weight:600;'>Only you pay (₹" + str(e_item["line_total"]) + ")</div>", unsafe_allow_html=True)
+                            st.markdown("<div style='margin-top:1.5rem; color:#7A1F2B; font-weight:700;'>Only you pay (₹" + str(e_item["line_total"]) + ")</div>", unsafe_allow_html=True)
                         
                         elif split_mode == "Specific Member":
                             e_item["split_mode"] = "specific"
@@ -542,9 +555,9 @@ elif step == 3:
                                 }
                                 for mid in room_member_ids
                             ]
-                            st.markdown(f"<div style='margin-top:1.5rem; color:#C8963E; font-weight:600;'>Shared equally ({format_currency(per_person_amt)} / member)</div>", unsafe_allow_html=True)
+                            st.markdown(f"<div style='margin-top:1.5rem; color:#C8963E; font-weight:700;'>Shared equally ({format_currency(per_person_amt)} / member)</div>", unsafe_allow_html=True)
 
-                    st.markdown("<hr style='border-color:#E3D6BE; margin:0.3rem 0 0.8rem 0;'>", unsafe_allow_html=True)
+                    st.markdown("<hr style='border:none; border-top:1px solid #E3D6BE; margin:0.3rem 0 0.8rem 0;'>", unsafe_allow_html=True)
 
     # ── TAB 3: Unpurchased Grocery List Items ─────────────────────────────────
     with tab_unpurchased:
@@ -560,12 +573,12 @@ elif step == 3:
             for ug in unmatched_grocery:
                 st.markdown(
                     f"""
-                    <div style="background:#FBF6EC; border-left:4px solid #C8963E; border-radius:4px; padding:0.5rem 1rem; margin-bottom:0.5rem; display:flex; justify-content:space-between;">
+                    <div style="background:#FFFDF9; border:1px solid #E3D6BE; border-left:4px solid #C8963E; border-radius:8px; padding:0.6rem 1.2rem; margin-bottom:0.6rem; display:flex; justify-content:space-between; align-items:center;">
                         <div>
                             <strong>{ug['itemName']}</strong> (Qty: {ug['quantity']}) — Requested by <em>{ug['memberName']}</em>
                         </div>
                         <div>
-                            <span style="color:#C8963E; font-weight:600; font-size:0.85rem;">⏳ Not Purchased (stays pending)</span>
+                            <span style="color:#C8963E; font-weight:700; font-size:0.85rem;">⏳ Not Purchased (stays pending)</span>
                         </div>
                     </div>
                     """,
@@ -586,11 +599,11 @@ elif step == 3:
 
 # ── STEP 4: SUMMARY & CONFIRM ────────────────────────────────────────────────
 elif step == 4:
-    st.markdown("### Step 4 — Final Expense Split & Confirmation")
+    st.markdown("### Step 4 — Split Summary & Confirmation")
     
-    mstate = st.session_state["matched_state"]
-    matched_items = mstate["matched_items"]
-    extra_items = mstate["extra_items"]
+    mstate = st.session_state.get("matched_state", {})
+    matched_items = mstate.get("matched_items", [])
+    extra_items = mstate.get("extra_items", [])
 
     # Tax & Charge Distribution Toggle
     tax_toggle_col1, tax_toggle_col2 = st.columns([2, 3])
@@ -628,9 +641,9 @@ elif step == 4:
     # Receipt Overview Card
     st.markdown(
         f"""
-        <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:18px; padding:1.2rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center;">
+        <div style="background:#FFFDF9; border:1px solid #E3D6BE; border-radius:16px; padding:1.2rem 1.6rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; box-shadow:0 4px 20px -2px rgba(59,42,32,0.06);">
             <div>
-                <span style="font-size:1.2rem; font-weight:700;">{scan.get('store', 'Store')}</span> &nbsp;|&nbsp; 
+                <span style="font-size:1.2rem; font-weight:700; color:#2A1D16;">{scan.get('store', 'Store')}</span> &nbsp;|&nbsp; 
                 <span style="color:#5C4A3E;">Date: {scan.get('date') or 'Today'}</span> &nbsp;|&nbsp;
                 <span style="color:#5C4A3E;">Subtotal: {format_currency(scan['subtotal'])} | Tax: {format_currency(scan['tax'])} | Discount: -{format_currency(scan['discount'])}</span>
             </div>
@@ -647,13 +660,13 @@ elif step == 4:
     
     # Table header
     th1, th2, th3, th4, th5, th6 = st.columns([2.5, 1.5, 1.5, 1.5, 2, 2.5])
-    th1.markdown("**Member**")
-    th2.markdown("**Items Cost**")
-    th3.markdown("**Tax Share**")
-    th4.markdown("**Discount**")
-    th5.markdown("**Total Share**")
-    th6.markdown("**Owed to Shopper**")
-    st.markdown("<hr style='margin:0.2rem 0 0.6rem 0; border-color:#E3D6BE;'>", unsafe_allow_html=True)
+    th1.markdown("<span style='font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#C8963E;'>Member</span>", unsafe_allow_html=True)
+    th2.markdown("<span style='font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#C8963E;'>Items Cost</span>", unsafe_allow_html=True)
+    th3.markdown("<span style='font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#C8963E;'>Tax Share</span>", unsafe_allow_html=True)
+    th4.markdown("<span style='font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#C8963E;'>Discount</span>", unsafe_allow_html=True)
+    th5.markdown("<span style='font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#C8963E;'>Total Share</span>", unsafe_allow_html=True)
+    th6.markdown("<span style='font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#C8963E;'>Owed to Shopper</span>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin:0.3rem 0 0.8rem 0; border:none; border-top:1.5px solid #E3D6BE;'>", unsafe_allow_html=True)
 
     for m in summaries:
         r1, r2, r3, r4, r5, r6 = st.columns([2.5, 1.5, 1.5, 1.5, 2, 2.5])
@@ -661,20 +674,20 @@ elif step == 4:
             name_label = f"👤 {m['display_name']}" + (" *(Shopper)*" if m['is_shopper'] else "")
             st.markdown(f"**{name_label}**<br><span style='font-size:0.8rem; color:#5C4A3E;'>{m['items_count']} items</span>", unsafe_allow_html=True)
         with r2:
-            st.write(format_currency(m["subtotal"]))
+            st.markdown(f"<span class='money-tabular'>{format_currency(m['subtotal'])}</span>", unsafe_allow_html=True)
         with r3:
-            st.write(format_currency(m["tax_share"]))
+            st.markdown(f"<span class='money-tabular'>{format_currency(m['tax_share'])}</span>", unsafe_allow_html=True)
         with r4:
-            st.write(f"-{format_currency(m['discount_share'])}")
+            st.markdown(f"<span class='money-tabular'>-{format_currency(m['discount_share'])}</span>", unsafe_allow_html=True)
         with r5:
-            st.markdown(f"<span style='font-weight:700;'>{format_currency(m['net_total_share'])}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='money-tabular' style='font-weight:700;'>{format_currency(m['net_total_share'])}</span>", unsafe_allow_html=True)
         with r6:
             if m["is_shopper"]:
                 st.markdown("<span style='color:#5C4A3E; font-style:italic;'>Own purchase (paid)</span>", unsafe_allow_html=True)
             else:
-                st.markdown(f"<span style='font-weight:700; color:#C8963E; font-size:1.1rem;'>Owes {format_currency(m['owed_to_shopper'])}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span class='money-tabular' style='font-weight:700; color:#7A1F2B; font-size:1.05rem;'>Owes {format_currency(m['owed_to_shopper'])}</span>", unsafe_allow_html=True)
 
-    st.markdown("<hr style='margin:1rem 0; border-color:#E3D6BE;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin:1rem 0; border:none; border-top:1px solid #E3D6BE;'>", unsafe_allow_html=True)
 
     # Reconciliation Check
     reconciled_sum = split_result["reconciled_sum"]

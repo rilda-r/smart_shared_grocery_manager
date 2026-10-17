@@ -614,7 +614,6 @@ def reset_active_monthly_data(user_id: int) -> bool:
         return False
 
 
-
 def get_room_payments_live(room_id: int) -> list:
     """Fetch live payment debts for a room from Supabase PostgreSQL."""
     if not room_id:
@@ -667,4 +666,4 @@ def settle_payment_live(payment_id: int) -> bool:
 def report_payment_live(payment_id: int) -> bool:
     """Mark a payment as reported in Supabase PostgreSQL."""
     execute("UPDATE payments SET payment_status = 'reported', reported_at = %s WHERE id = %s", (datetime.utcnow(), int(payment_id)))
-    return True
+    return True

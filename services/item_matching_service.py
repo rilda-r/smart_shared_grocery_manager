@@ -26,6 +26,45 @@ _MULTIPLIER_RE = re.compile(r"\b\d+\s*[xX*@]\s*\d+\b")
 _NOISE_WORDS = re.compile(r"\b(?:organic|fresh|farm|premium|pure|natural|local|brand|classic|select)\b", re.IGNORECASE)
 
 
+RECENT_PURCHASE_DAYS = 3
+
+
+def select_matchable_grocery_items(
+    all_items: List[Dict[str, Any]],
+    billed_item_ids: Optional[set] = None,
+    now: Optional[Any] = None,
+    recent_days: int = RECENT_PURCHASE_DAYS,
+) -> List[Dict[str, Any]]:
+    """
+    Grocery items a receipt can be matched against:
+      1. every 'pending' item, and
+      2. items already marked 'purchased' (e.g. bought 1/1 on the Shopping page) that were purchased
+         recently and have NOT already been attributed to an earlier receipt.
+    Without (2) a fully purchased item drops out of matching and lands in "Extras", owned by the shopper,
+    so the person who actually asked for it has to be re-assigned by hand.
+    Pending items come first so they win ties.
+    """
+    from datetime import datetime, timedelta
+
+    billed = {int(x) for x in (billed_item_ids or set()) if x is not None}
+    now = now or datetime.utcnow()
+    cutoff = now - timedelta(days=recent_days)
+
+    pending, recent_purchased = [], []
+    for g in all_items:
+        status = g.get("status")
+        if status == "pending":
+            pending.append(g)
+        elif status == "purchased" and g.get("id") not in billed:
+            try:
+                updated = datetime.fromisoformat(str(g.get("updatedAt") or "").replace("Z", "")[:26])
+            except ValueError:
+                continue
+            if updated >= cutoff:
+                recent_purchased.append(g)
+    return pending + recent_purchased
+
+
 def normalize_item_name(name: str) -> str:
     """
     Normalize product names: lowercase, strip punctuation, measurement units,
