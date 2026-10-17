@@ -36,7 +36,7 @@ def store_receipt_file(file_bytes: bytes, file_name: str, room_id: int, user_id:
             supabase_key = st.secrets.get("SUPABASE_KEY") or st.secrets.get("SUPABASE_SERVICE_ROLE_KEY")
 
         if not supabase_url:
-            supabase_url = os.environ.get("SUPABASE_URL") or "https://dqeyyigaybovkddthipg.supabase.co"
+            supabase_url = os.environ.get("SUPABASE_URL")
         if not supabase_key:
             supabase_key = os.environ.get("SUPABASE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 
