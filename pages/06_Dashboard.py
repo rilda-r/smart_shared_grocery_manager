@@ -42,8 +42,8 @@ render_dev_mode_banner()
 
 # ── Page title ────────────────────────────────────────────────────────────────
 st.markdown(f"# 📊 Dashboard")
-st.markdown(f"<p style='color:#5C4A3E; margin-top:-0.8rem;'>Welcome back, <strong>{username}</strong>!</p>", unsafe_allow_html=True)
-st.markdown("<hr style='border-color:#E3D6BE; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
+st.markdown(f"<p style='color:#4A6568; margin-top:-0.8rem;'>Welcome back, <strong>{username}</strong>!</p>", unsafe_allow_html=True)
+st.markdown("<hr style='border-color:#CADDD8; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
 
 
 # ── Pull database data ────────────────────────────────────────────────────────
@@ -139,11 +139,11 @@ with left_col:
             pending_in_room = sum(1 for i in all_items if i["roomId"] == room["id"] and i["status"] == "pending")
             st.markdown(
                 f"""
-                <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-left:4px solid #7A1F2B;
-                            border-radius:18px; padding:1.1rem 1.3rem; margin-bottom:0.75rem; box-shadow:0 4px 20px -2px rgba(59, 42, 32, 0.08);">
-                    <div style="font-weight:700; color:#2A1D16; font-size:1.02rem;">{room['name']}</div>
-                    <div style="font-size:0.82rem; color:#5C4A3E; margin-top:0.3rem;">
-                        Code: <code style="background:#F7F2E8; border:1px solid #E3D6BE; border-radius:8px; padding:2px 6px; color:#7A1F2B; font-weight:700;">{room.get('code','')}</code> &nbsp;|&nbsp;
+                <div style="background:#F7FBFA; border:1px solid #CADDD8; border-left:4px solid #0F766E;
+                            border-radius:18px; padding:1.1rem 1.3rem; margin-bottom:0.75rem; box-shadow:0 4px 20px -2px rgba(16, 39, 42, 0.08);">
+                    <div style="font-weight:700; color:#10272A; font-size:1.02rem;">{room['name']}</div>
+                    <div style="font-size:0.82rem; color:#4A6568; margin-top:0.3rem;">
+                        Code: <code style="background:#F5FAF8; border:1px solid #CADDD8; border-radius:8px; padding:2px 6px; color:#0F766E; font-weight:700;">{room.get('code','')}</code> &nbsp;|&nbsp;
                         {pending_in_room} pending item{"s" if pending_in_room != 1 else ""}
                     </div>
                 </div>
@@ -162,11 +162,11 @@ with left_col:
             room_name = next((r["name"] for r in my_rooms if r["id"] == item["roomId"]), "—")
             st.markdown(
                 f"""
-                <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:14px;
+                <div style="background:#F7FBFA; border:1px solid #CADDD8; border-radius:14px;
                             padding:0.65rem 1rem; margin-bottom:0.45rem; display:flex; justify-content:space-between; align-items:center;
-                            box-shadow:0 2px 6px rgba(59, 42, 32, 0.03);">
-                    <div style="font-size:0.92rem; font-weight:600; color:#2A1D16;">🛒 {item['itemName']} <span style="color:#7A1F2B; font-weight:700;">×{item['quantity']}</span></div>
-                    <div style="font-size:0.78rem; color:#5C4A3E; background:#F7F2E8; border:1px solid #E3D6BE; border-radius:8px; padding:2px 8px;">{room_name}</div>
+                            box-shadow:0 2px 6px rgba(16, 39, 42, 0.03);">
+                    <div style="font-size:0.92rem; font-weight:600; color:#10272A;">🛒 {item['itemName']} <span style="color:#0F766E; font-weight:700;">×{item['quantity']}</span></div>
+                    <div style="font-size:0.78rem; color:#4A6568; background:#F5FAF8; border:1px solid #CADDD8; border-radius:8px; padding:2px 8px;">{room_name}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -188,17 +188,17 @@ with right_col:
         for b in budgets:
             spent = spending_by_cat.get(b["category"], 0.0)
             pct = (spent / b["monthlyLimit"] * 100) if b["monthlyLimit"] > 0 else 0
-            color = "#8C1C13" if pct >= 100 else ("#C8963E" if pct >= 80 else "#6B8F71")
+            color = "#8C1C13" if pct >= 100 else ("#E3A02E" if pct >= 80 else "#6B8F71")
             st.markdown(
                 f"""
-                <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:18px;
-                            padding:0.85rem 1.1rem; margin-bottom:0.7rem; box-shadow:0 4px 20px -2px rgba(59, 42, 32, 0.06);">
+                <div style="background:#F7FBFA; border:1px solid #CADDD8; border-radius:18px;
+                            padding:0.85rem 1.1rem; margin-bottom:0.7rem; box-shadow:0 4px 20px -2px rgba(16, 39, 42, 0.06);">
                     <div style="display:flex; justify-content:space-between; font-size:0.88rem; font-weight:600;
-                                color:#2A1D16; margin-bottom:6px;">
+                                color:#10272A; margin-bottom:6px;">
                         <span>{b['category']}</span>
                         <span style="color:{color}; font-weight:700;">{format_currency(spent)} / {format_currency(b['monthlyLimit'])}</span>
                     </div>
-                    <div style="background:#EADFCB; border:1px solid #E3D6BE; border-radius:8px; height:8px; overflow:hidden;">
+                    <div style="background:#DCEBE7; border:1px solid #CADDD8; border-radius:8px; height:8px; overflow:hidden;">
                         <div style="background:{color}; width:{min(pct, 100):.0f}%; height:100%; border-radius:8px;"></div>
                     </div>
                 </div>

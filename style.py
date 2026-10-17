@@ -1,31 +1,31 @@
 import streamlit as st
 
 # ==============================================================================
-# GrocEase "Shared Kitchen Counter" Aesthetic Design Tokens
+# GrocEase "Fresh Market" (teal & mint) Aesthetic Design Tokens
 # ==============================================================================
 
 # Sand Canvas (Main Background)
-SAND = "#F3EBDD"             # Main sand canvas background
-SAND_CANVAS = "#F7F2E8"      # Light canvas tint
-SAND_SUBTLE = "#EADFCB"      # Subtle warm sand tint
-SAND_DARK = "#D8C9AE"
+SAND = "#EEF5F3"             # Main sand canvas background
+SAND_CANVAS = "#F5FAF8"      # Light canvas tint
+SAND_SUBTLE = "#DCEBE7"      # Subtle warm sand tint
+SAND_DARK = "#BCD6CF"
 
 # Deep Chocolate (Text & Headings)
-DEEP_CHOCOLATE = "#2A1D16"   # Main text & headings
-CHOCOLATE = "#3B2A20"        # Chocolate sidebar background
-CHOCOLATE_HOVER = "#4A3528"  # Sidebar item hover & muted labels
-CHOCOLATE_CARD = "#211611"   # Deep chocolate card
-CHOCOLATE_MUTED = "#5C4A3E"  # Muted chocolate body text
+DEEP_CHOCOLATE = "#10272A"   # Main text & headings
+CHOCOLATE = "#0E3B3A"        # Chocolate sidebar background
+CHOCOLATE_HOVER = "#14504D"  # Sidebar item hover & muted labels
+CHOCOLATE_CARD = "#0A2B2B"   # Deep chocolate card
+CHOCOLATE_MUTED = "#4A6568"  # Muted chocolate body text
 
 # Cream (Card & Container Background)
-CREAM = "#FBF6EC"            # Card & container background
-CREAM_BORDER = "#E3D6BE"     # Card & input border
-CREAM_LIGHT = "#FFFDF9"      # Elevated light container background
+CREAM = "#F7FBFA"            # Card & container background
+CREAM_BORDER = "#CADDD8"     # Card & input border
+CREAM_LIGHT = "#FFFFFF"      # Elevated light container background
 
 # Burgundy (Primary Action Buttons / Accents)
-BURGUNDY = "#7A1F2B"         # Primary actions, highlights, brand accents
-BURGUNDY_HOVER = "#661823"   # Burgundy hover
-BURGUNDY_LIGHT = "#9E2A38"   # Burgundy light highlight
+BURGUNDY = "#0F766E"         # Primary actions, highlights, brand accents
+BURGUNDY_HOVER = "#0B5F58"   # Burgundy hover
+BURGUNDY_LIGHT = "#14938A"   # Burgundy light highlight
 
 # Sage (In the Green / Live / Success)
 SAGE = "#6B8F71"             # Success, active sync, healthy budget
@@ -36,7 +36,7 @@ OXBLOOD = "#8C1C13"          # Debts, errors, delete actions, over-budget
 OXBLOOD_LIGHT = "#FCEAE8"    # Oxblood light background
 
 # Ochre (Warnings / Pending)
-OCHRE = "#C8963E"            # Warnings, pending, caution badges
+OCHRE = "#E3A02E"            # Warnings, pending, caution badges
 OCHRE_LIGHT = "#FBF3E3"      # Ochre light background
 
 # Backward-compatibility token aliases
@@ -53,8 +53,8 @@ LINE = CREAM_BORDER
 LINE_SOLID = CREAM_BORDER
 SIDEBAR_BG = CHOCOLATE
 
-WARM_SHADOW = "0 4px 20px -2px rgba(59, 42, 32, 0.08)"
-WARM_SHADOW_MD = "0 8px 30px -4px rgba(59, 42, 32, 0.12)"
+WARM_SHADOW = "0 4px 20px -2px rgba(16, 39, 42, 0.08)"
+WARM_SHADOW_MD = "0 8px 30px -4px rgba(16, 39, 42, 0.12)"
 
 BASE_CSS = f"""
 <style>
@@ -68,7 +68,7 @@ html, body, [class*="css"] {{
 /* Warm Dotted Kitchen Counter Texture */
 .stApp {{ 
     background-color: {SAND} !important;
-    background-image: radial-gradient(rgba(59, 42, 32, 0.08) 1.5px, transparent 1.5px) !important;
+    background-image: radial-gradient(rgba(16, 39, 42, 0.08) 1.5px, transparent 1.5px) !important;
     background-size: 24px 24px !important;
 }}
 
@@ -112,34 +112,34 @@ header [data-testid="stToolbar"] {{
 .stButton > button,
 button[kind="primary"] {{
     background-color: {BURGUNDY} !important;
-    color: #FFFDF9 !important;
+    color: #FFFFFF !important;
     border: none !important;
     border-radius: 12px !important;
     padding: 0.65rem 1.4rem !important;
     font-weight: 600 !important;
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 0.94rem !important;
-    box-shadow: 0 4px 14px rgba(122, 31, 43, 0.22) !important;
+    box-shadow: 0 4px 14px rgba(15, 118, 110, 0.22) !important;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     letter-spacing: 0.01em;
 }}
 .stButton > button:hover,
 button[kind="primary"]:hover {{ 
     background-color: {BURGUNDY_HOVER} !important; 
-    box-shadow: 0 6px 18px rgba(122, 31, 43, 0.32) !important;
+    box-shadow: 0 6px 18px rgba(15, 118, 110, 0.32) !important;
     transform: translateY(-1px);
 }}
 .stButton > button:active,
 button[kind="primary"]:active {{
     transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(122, 31, 43, 0.2) !important;
+    box-shadow: 0 2px 6px rgba(15, 118, 110, 0.2) !important;
     background-color: #54121B !important;
 }}
 .stButton > button:focus,
 button[kind="primary"]:focus {{ 
     background-color: {BURGUNDY} !important; 
-    color: #FFFDF9 !important; 
-    box-shadow: 0 0 0 3px rgba(122, 31, 43, 0.25) !important;
+    color: #FFFFFF !important; 
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.25) !important;
 }}
 .stButton > button * {{ color: inherit !important; }}
 
@@ -150,7 +150,7 @@ button[kind="secondary"] {{
     color: {CHOCOLATE} !important;
     border: 1.5px solid {CREAM_BORDER} !important;
     border-radius: 12px !important;
-    box-shadow: 0 2px 8px rgba(59, 42, 32, 0.05) !important;
+    box-shadow: 0 2px 8px rgba(16, 39, 42, 0.05) !important;
 }}
 .groc-secondary .stButton > button:hover,
 button[kind="secondary"]:hover {{ 
@@ -170,7 +170,7 @@ button[kind="secondary"]:hover {{
 }}
 .groc-danger .stButton > button:hover {{
     background-color: {OXBLOOD} !important;
-    color: #FFFDF9 !important;
+    color: #FFFFFF !important;
     transform: translateY(-1px);
 }}
 
@@ -187,14 +187,14 @@ button[kind="secondary"]:hover {{
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     padding: 0.65rem 0.95rem !important;
     transition: all 0.2s ease !important;
-    box-shadow: 0 1px 4px rgba(59, 42, 32, 0.04) !important;
+    box-shadow: 0 1px 4px rgba(16, 39, 42, 0.04) !important;
 }}
 .stTextInput div div input:focus,
 .stNumberInput div div input:focus,
 .stDateInput div div input:focus,
 .stTextArea div div textarea:focus {{
     border-color: {BURGUNDY} !important;
-    box-shadow: 0 0 0 3px rgba(122, 31, 43, 0.16) !important;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16) !important;
     background-color: {CREAM_LIGHT} !important;
 }}
 
@@ -202,21 +202,21 @@ button[kind="secondary"]:hover {{
 [data-baseweb="select"],
 [data-baseweb="select"] > div,
 [data-baseweb="select"] div[role="combobox"] {{
-    background-color: #FBF6EC !important;
-    border: 1.5px solid #E3D6BE !important;
+    background-color: #F7FBFA !important;
+    border: 1.5px solid #CADDD8 !important;
     border-radius: 12px !important;
-    color: #2A1D16 !important;
-    box-shadow: 0 1px 4px rgba(59, 42, 32, 0.04) !important;
+    color: #10272A !important;
+    box-shadow: 0 1px 4px rgba(16, 39, 42, 0.04) !important;
 }}
 [data-baseweb="select"] * {{
-    color: #2A1D16 !important;
+    color: #10272A !important;
 }}
 [data-baseweb="select"] svg {{
-    fill: #2A1D16 !important;
+    fill: #10272A !important;
 }}
 [data-baseweb="select"] > div:focus-within {{
-    border-color: #7A1F2B !important;
-    box-shadow: 0 0 0 3px rgba(122, 31, 43, 0.16) !important;
+    border-color: #0F766E !important;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16) !important;
 }}
 
 /* BaseWeb Dropdown Popover & Options List */
@@ -224,17 +224,17 @@ button[kind="secondary"]:hover {{
 [data-baseweb="popover"] > div,
 [data-baseweb="menu"],
 ul[role="listbox"] {{
-    background-color: #FBF6EC !important;
-    border: 1.5px solid #E3D6BE !important;
+    background-color: #F7FBFA !important;
+    border: 1.5px solid #CADDD8 !important;
     border-radius: 14px !important;
-    box-shadow: 0 10px 30px -4px rgba(59, 42, 32, 0.16) !important;
+    box-shadow: 0 10px 30px -4px rgba(16, 39, 42, 0.16) !important;
     padding: 6px !important;
 }}
 ul[role="listbox"] li,
 li[role="option"],
 [data-baseweb="menu"] li {{
     background-color: transparent !important;
-    color: #2A1D16 !important;
+    color: #10272A !important;
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 0.94rem !important;
     font-weight: 500 !important;
@@ -246,8 +246,8 @@ ul[role="listbox"] li:hover,
 li[role="option"]:hover,
 li[role="option"][aria-selected="true"],
 [data-baseweb="menu"] li:hover {{
-    background-color: #EADFCB !important;
-    color: #7A1F2B !important;
+    background-color: #DCEBE7 !important;
+    color: #0F766E !important;
     font-weight: 700 !important;
 }}
 
@@ -278,7 +278,7 @@ div[data-testid="stExpander"] {{
     background-color: {CREAM} !important;
     border: 1px solid {CREAM_BORDER} !important;
     border-radius: 18px !important;
-    box-shadow: 0 4px 20px -2px rgba(59, 42, 32, 0.08) !important;
+    box-shadow: 0 4px 20px -2px rgba(16, 39, 42, 0.08) !important;
     margin-bottom: 0.9rem !important;
     overflow: hidden !important;
 }}
@@ -314,7 +314,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {{
     border-top: 4px solid {BURGUNDY} !important;
     border-radius: 18px !important;
     padding: 1.85rem !important;
-    box-shadow: 0 4px 20px -2px rgba(59, 42, 32, 0.08) !important;
+    box-shadow: 0 4px 20px -2px rgba(16, 39, 42, 0.08) !important;
 }}
 .groc-card {{
     background-color: {CREAM};
@@ -322,7 +322,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {{
     border-top: 4px solid {BURGUNDY};
     border-radius: 18px;
     padding: 1.85rem;
-    box-shadow: 0 4px 20px -2px rgba(59, 42, 32, 0.08);
+    box-shadow: 0 4px 20px -2px rgba(16, 39, 42, 0.08);
     margin-bottom: 1.2rem;
 }}
 .groc-panel {{
@@ -330,7 +330,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {{
     border: 1px solid {CREAM_BORDER};
     border-radius: 18px;
     padding: 1.5rem;
-    box-shadow: 0 4px 20px -2px rgba(59, 42, 32, 0.08);
+    box-shadow: 0 4px 20px -2px rgba(16, 39, 42, 0.08);
 }}
 .groc-hr {{
     border: none;
@@ -414,7 +414,7 @@ div[data-testid="stAlert"] {{
     border-radius: 14px !important;
     border-width: 1px !important;
     border-style: solid !important;
-    box-shadow: 0 2px 10px rgba(59, 42, 32, 0.05) !important;
+    box-shadow: 0 2px 10px rgba(16, 39, 42, 0.05) !important;
 }}
 div[data-testid="stAlert"]:has([data-testid="stNotificationContentSuccess"]) {{
     background-color: {SAGE_LIGHT} !important;
@@ -452,7 +452,7 @@ div[data-testid="stAlert"]:has([data-testid="stNotificationContentError"]) {{
     background: rgba(234, 223, 203, 0.4);
 }}
 ::-webkit-scrollbar-thumb {{
-    background: rgba(59, 42, 32, 0.2);
+    background: rgba(16, 39, 42, 0.2);
     border-radius: 9999px;
 }}
 /* Shopping Mode Compact Action Row Alignment */

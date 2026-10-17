@@ -31,26 +31,26 @@ def format_datetime(iso_str: str) -> str:
 
 
 STATUS_BADGE = {
-    "pending":     ("⏳", "#C8963E", "#FBF3E3"),
+    "pending":     ("⏳", "#E3A02E", "#FBF3E3"),
     "purchased":   ("✅", "#6B8F71", "#EAF1EB"),
     "unavailable": ("❌", "#8C1C13", "#FCEAE8"),
     "settled":     ("✅", "#6B8F71", "#EAF1EB"),
-    "reported":    ("⚠️", "#C8963E", "#FBF3E3"),
+    "reported":    ("⚠️", "#E3A02E", "#FBF3E3"),
     "completed":   ("✅", "#6B8F71", "#EAF1EB"),
     "failed":      ("❌", "#8C1C13", "#FCEAE8"),
-    "processing":  ("⏳", "#C8963E", "#FBF3E3"),
-    "creator":     ("👑", "#7A1F2B", "#FCEAE8"),
-    "member":      ("👤", "#3B2A20", "#FBF6EC"),
+    "processing":  ("⏳", "#E3A02E", "#FBF3E3"),
+    "creator":     ("👑", "#0F766E", "#FCEAE8"),
+    "member":      ("👤", "#0E3B3A", "#F7FBFA"),
 }
 
 
 def badge_html(status: str) -> str:
     """Return an HTML span badge for the given status."""
-    icon, color, bg = STATUS_BADGE.get(status.lower(), ("•", "#5C4A3E", "#FBF6EC"))
+    icon, color, bg = STATUS_BADGE.get(status.lower(), ("•", "#4A6568", "#F7FBFA"))
     return (
         f'<span style="background:{bg}; color:{color}; border:1.2px solid {color}; '
         f'border-radius:20px; padding:3px 10px; font-size:0.8rem; font-weight:700; '
-        f'font-family:\'Plus Jakarta Sans\',sans-serif; display:inline-flex; align-items:center; gap:4px; box-shadow:0 1px 3px rgba(59,42,32,0.04);">'
+        f'font-family:\'Plus Jakarta Sans\',sans-serif; display:inline-flex; align-items:center; gap:4px; box-shadow:0 1px 3px rgba(16,39,42,0.04);">'
         f"{icon} {status.capitalize()}</span>"
     )
 
@@ -60,5 +60,5 @@ def percentage_color(pct: float) -> str:
     if pct >= 100:
         return "#8C1C13"  # OXBLOOD — over budget
     if pct >= 80:
-        return "#C8963E"  # OCHRE — warning
+        return "#E3A02E"  # OCHRE — warning
     return "#6B8F71"      # SAGE — healthy / in the green

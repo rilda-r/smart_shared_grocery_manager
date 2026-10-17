@@ -44,10 +44,10 @@ username = get_username()
 
 st.markdown("# 📝 Personal Expenses")
 st.markdown(
-    f"<p style='color:#5C4A3E; margin-top:-0.8rem;'>Your private expense log — only visible to you, <strong>{username}</strong>.</p>",
+    f"<p style='color:#4A6568; margin-top:-0.8rem;'>Your private expense log — only visible to you, <strong>{username}</strong>.</p>",
     unsafe_allow_html=True,
 )
-st.markdown("<hr style='border-color:#E3D6BE; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border-color:#CADDD8; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
 
 
 def fetch_expenses(uid: int) -> list:

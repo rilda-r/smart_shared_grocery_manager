@@ -45,14 +45,14 @@ _SIDEBAR_CSS = """
 
 /* Warm Chocolate vertical sidebar panel */
 [data-testid="stSidebar"] {
-    background-color: #3B2A20 !important;
-    background-image: linear-gradient(180deg, #3B2A20 0%, #211611 100%) !important;
+    background-color: #0E3B3A !important;
+    background-image: linear-gradient(180deg, #0E3B3A 0%, #0A2B2B 100%) !important;
     border-right: 1.5px solid rgba(227, 214, 190, 0.2) !important;
     min-width: 250px !important;
-    box-shadow: 4px 0 24px rgba(33, 22, 17, 0.25) !important;
+    box-shadow: 4px 0 24px rgba(10, 43, 43, 0.25) !important;
 }
 [data-testid="stSidebar"] * {
-    color: #F3EBDD !important;
+    color: #EEF5F3 !important;
 }
 
 /* Sidebar logo */
@@ -60,14 +60,14 @@ _SIDEBAR_CSS = """
     font-family: 'Fraunces', Georgia, serif;
     font-size: 1.65rem;
     font-weight: 800;
-    color: #FFFDF9 !important;
+    color: #FFFFFF !important;
     letter-spacing: -0.02em;
     margin-bottom: 0.15rem;
     text-shadow: 0 2px 4px rgba(0,0,0,0.25);
 }
 .sb-tagline {
     font-size: 0.78rem;
-    color: #EADFCB !important;
+    color: #DCEBE7 !important;
     font-weight: 500;
     margin-bottom: 1.3rem;
     letter-spacing: 0.02em;
@@ -82,17 +82,17 @@ _SIDEBAR_CSS = """
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #C8963E !important;
+    color: #E3A02E !important;
     margin: 1.1rem 0 0.45rem 0.4rem;
 }
 .sb-user-chip {
-    background: #FBF6EC !important;
-    border: 1px solid #E3D6BE;
+    background: #F7FBFA !important;
+    border: 1px solid #CADDD8;
     border-radius: 24px;
     padding: 6px 14px;
     font-size: 0.85rem;
     font-weight: 700;
-    color: #3B2A20 !important;
+    color: #0E3B3A !important;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -100,7 +100,7 @@ _SIDEBAR_CSS = """
     box-shadow: 0 3px 8px rgba(0,0,0,0.18);
 }
 .sb-user-chip * {
-    color: #3B2A20 !important;
+    color: #0E3B3A !important;
 }
 
 /* Nav links in sidebar (warm wood pill items with micro-interactions) */
@@ -109,7 +109,7 @@ _SIDEBAR_CSS = """
 }
 [data-testid="stSidebar"] [data-testid="stPageLink"] a,
 [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"] {
-    color: #F3EBDD !important;
+    color: #EEF5F3 !important;
     font-size: 0.92rem !important;
     font-weight: 500 !important;
     padding: 8px 14px !important;
@@ -121,26 +121,26 @@ _SIDEBAR_CSS = """
 }
 [data-testid="stSidebar"] [data-testid="stPageLink"] a p,
 [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"] p {
-    color: #F3EBDD !important;
+    color: #EEF5F3 !important;
     font-weight: 500 !important;
     margin: 0 !important;
     transition: color 0.15s ease !important;
 }
 [data-testid="stSidebar"] [data-testid="stPageLink"] a:hover,
 [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"]:hover {
-    background-color: #4A3528 !important;
+    background-color: #14504D !important;
     transform: translateX(4px) !important;
 }
 [data-testid="stSidebar"] [data-testid="stPageLink"] a:hover p,
 [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"]:hover p {
-    color: #FFFDF9 !important;
+    color: #FFFFFF !important;
     font-weight: 600 !important;
 }
 
 /* Sidebar action buttons (e.g. Logout) */
 [data-testid="stSidebar"] .stButton > button {
     background-color: rgba(251, 246, 236, 0.08) !important;
-    color: #F3EBDD !important;
+    color: #EEF5F3 !important;
     border: 1.5px solid rgba(227, 214, 190, 0.35) !important;
     border-radius: 12px !important;
     font-size: 0.88rem !important;
@@ -153,10 +153,10 @@ _SIDEBAR_CSS = """
     transition: all 0.2s ease !important;
 }
 [data-testid="stSidebar"] .stButton > button:hover {
-    background-color: #7A1F2B !important;
-    border-color: #7A1F2B !important;
-    color: #FFFDF9 !important;
-    box-shadow: 0 4px 14px rgba(122, 31, 43, 0.3) !important;
+    background-color: #0F766E !important;
+    border-color: #0F766E !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3) !important;
     transform: translateY(-1px);
 }
 </style>

@@ -24,11 +24,11 @@ def render_payment_table(payments: list, current_user_id: int, on_settle=None, o
     if not payments:
         st.markdown(
             """
-            <div style="background:#FFFDF9; border:1.5px dashed #E3D6BE; border-radius:18px;
-                        text-align:center; padding:2.5rem 1rem; color:#5C4A3E; box-shadow:0 2px 8px rgba(59,42,32,0.03);">
+            <div style="background:#FFFFFF; border:1.5px dashed #CADDD8; border-radius:18px;
+                        text-align:center; padding:2.5rem 1rem; color:#4A6568; box-shadow:0 2px 8px rgba(16,39,42,0.03);">
                 <div style="font-size:2.8rem; margin-bottom:0.4rem;">💳</div>
-                <div style="font-family:'Fraunces',Georgia,serif; font-size:1.1rem; font-weight:700; color:#2A1D16;">No payments yet</div>
-                <div style="font-size:0.88rem; color:#5C4A3E; margin-top:0.3rem;">Payments appear after a bill is split in your rooms.</div>
+                <div style="font-family:'Fraunces',Georgia,serif; font-size:1.1rem; font-weight:700; color:#10272A;">No payments yet</div>
+                <div style="font-size:0.88rem; color:#4A6568; margin-top:0.3rem;">Payments appear after a bill is split in your rooms.</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -38,8 +38,8 @@ def render_payment_table(payments: list, current_user_id: int, on_settle=None, o
     headers = ["Payer", "Payee", "Amount", "Status", "Date", "Actions"]
     header_cols = st.columns([2, 2, 2, 2, 3, 2])
     for col, h in zip(header_cols, headers):
-        col.markdown(f"<span style='font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#C8963E;'>{h}</span>", unsafe_allow_html=True)
-    st.markdown("<hr style='margin:0.4rem 0 0.8rem 0; border:none; border-top:1.5px solid #E3D6BE;'>", unsafe_allow_html=True)
+        col.markdown(f"<span style='font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#9A6A12;'>{h}</span>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin:0.4rem 0 0.8rem 0; border:none; border-top:1.5px solid #CADDD8;'>", unsafe_allow_html=True)
 
     for p in payments:
         row = st.columns([2, 2, 2, 2, 3, 2])

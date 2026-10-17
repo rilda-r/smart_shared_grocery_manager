@@ -45,7 +45,7 @@ nickname = profile.get("nickname") or user_db.get("nickname") or get_username()
 email = user_db.get("email") or st.session_state.get("user_email", "")
 
 st.markdown("# 👤 My Profile")
-st.markdown("<hr style='border-color:#E3D6BE; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border-color:#CADDD8; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
 
 # ── Profile layout ────────────────────────────────────────────────────────────
 left_col, right_col = st.columns([1, 2], gap="large")
@@ -55,10 +55,10 @@ with left_col:
     initial = (nickname[0] if nickname else actual_name[0]).upper()
     st.markdown(
         f"""
-        <div style="background:#7A1F2B; color:#FFFDF9; border-radius:50%;
+        <div style="background:#0F766E; color:#FFFFFF; border-radius:50%;
                     width:92px; height:92px; display:flex; align-items:center;
                     justify-content:center; font-family:'Fraunces',Georgia,serif;
-                    font-size:2.6rem; font-weight:700; margin-bottom:1rem; box-shadow:0 6px 18px rgba(122,31,43,0.25);">
+                    font-size:2.6rem; font-weight:700; margin-bottom:1rem; box-shadow:0 6px 18px rgba(15,118,110,0.25);">
             {initial}
         </div>
         """,
@@ -69,9 +69,9 @@ with left_col:
         f"""
         <div style="margin-bottom:0.8rem;">
             <div style="font-family:'Fraunces',Georgia,serif; font-size:1.55rem; font-weight:700;
-                        color:#7A1F2B;">{nickname}</div>
-            <div style="font-size:0.92rem; color:#2A1D16; font-weight:600;">Legal Name: {actual_name}</div>
-            <div style="font-size:0.85rem; color:#5C4A3E;">{email}</div>
+                        color:#0F766E;">{nickname}</div>
+            <div style="font-size:0.92rem; color:#10272A; font-weight:600;">Legal Name: {actual_name}</div>
+            <div style="font-size:0.85rem; color:#4A6568;">{email}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -180,7 +180,7 @@ with right_col:
         """
         <div style="background:#FCEAE8; border:1.5px solid #8C1C13; border-radius:18px; padding:1.3rem; margin-bottom:1rem; box-shadow:0 4px 14px rgba(140,28,19,0.06);">
             <div style="font-weight:700; color:#8C1C13; margin-bottom:0.3rem;">Permanent Account Deletion</div>
-            <div style="font-size:0.88rem; color:#5C4A3E;">
+            <div style="font-size:0.88rem; color:#4A6568;">
                 Deleting your account will permanently remove your profile, created rooms, room memberships,
                 payments, personal expenses, and budgets with cascading deletion.
             </div>

@@ -54,7 +54,7 @@ if not st.session_state.splash_completed:
             #splash {
                 position: fixed;
                 top: 0; left: 0; width: 100vw; height: 100vh;
-                background: #7A1F2B;
+                background: #0F766E;
                 z-index: 100000;
                 display: flex; 
                 flex-direction: column;
@@ -118,7 +118,7 @@ if not st.session_state.splash_completed:
                 opacity: 0; 
                 margin-top: 0.5rem;
                 animation: fadeUp 0.6s ease 1.3s forwards; 
-                color: #EADFCB !important; 
+                color: #DCEBE7 !important; 
             }
             @keyframes fadeUp { 
                 0% { opacity: 0; transform: translateY(10px); } 
@@ -192,7 +192,7 @@ with right:
         st.write(" ")
         footer_col1, footer_col2 = st.columns([1, 1], vertical_alignment="center")
         with footer_col1:
-            st.markdown('<p style="text-align:right; margin:0; font-size:0.95rem; color:#2A1D16; font-weight:500;">New here?</p>', unsafe_allow_html=True)
+            st.markdown('<p style="text-align:right; margin:0; font-size:0.95rem; color:#10272A; font-weight:500;">New here?</p>', unsafe_allow_html=True)
         with footer_col2:
             st.page_link("pages/02_Create_Account.py", label="Create Account")
 

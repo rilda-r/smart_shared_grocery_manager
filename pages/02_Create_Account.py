@@ -78,7 +78,7 @@ with mid:
     # Live password strength indicator
     if password:
         checks = password_strength(password)
-        st.markdown('<p style="font-size:0.95rem; font-weight:700; margin-top:0.8rem; color:#2A1D16;">Password requirements</p>', unsafe_allow_html=True)
+        st.markdown('<p style="font-size:0.95rem; font-weight:700; margin-top:0.8rem; color:#10272A;">Password requirements</p>', unsafe_allow_html=True)
         labels = {
             "length": "At least 8 characters",
             "uppercase": "Uppercase letter",
@@ -99,7 +99,7 @@ with mid:
 
     st.write("")
     create_clicked = st.button("Create Account", type="primary", use_container_width=True)
-    st.markdown("<p style='text-align:center; margin-top:1rem; font-size:0.92rem; color:#2A1D16; font-weight:500;'>Already have an account?</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; margin-top:1rem; font-size:0.92rem; color:#10272A; font-weight:500;'>Already have an account?</p>", unsafe_allow_html=True)
     st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
     st.page_link("pages/01_Login.py", label="Login to your account")
     st.markdown('</div>', unsafe_allow_html=True)
