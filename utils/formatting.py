@@ -62,3 +62,15 @@ def percentage_color(pct: float) -> str:
     if pct >= 80:
         return "#E3A02E"  # OCHRE — warning
     return "#6B8F71"      # SAGE — healthy / in the green
+
+
+def safe_error_message(exc: Exception, fallback: str = "Something went wrong. Please try again.") -> str:
+    """
+    Text that is safe to show in the UI. Our own validation errors (ValueError) pass through;
+    anything else (database driver / network errors can contain host names) is logged and replaced.
+    """
+    import logging
+    if isinstance(exc, ValueError):
+        return str(exc)
+    logging.getLogger("grocease").exception("Unhandled error shown to user as generic message: %s", type(exc).__name__)
+    return fallback

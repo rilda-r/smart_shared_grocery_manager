@@ -381,3 +381,32 @@ def test_fully_purchased_item_still_matches_requester():
     m = match_receipt_items(receipt, pool, members, shopper_user_id=1)
     assert m["extra_items"] == []
     assert m["matched_items"][0]["assignments"][0]["user_id"] == 2
+
+def test_gemini_retired_models_fall_back_to_discovered_model(monkeypatch):
+    import types as T
+    pytest = __import__("pytest")
+    genai = pytest.importorskip("google.genai")
+    import services.receipt_ocr_service as svc
+    calls = []
+
+    class Models:
+        def generate_content(self, model, **k):
+            calls.append(model)
+            if model != "gemini-9.9-flash":
+                raise Exception("404 NOT_FOUND model is no longer available")
+            return T.SimpleNamespace(text='{"store":"S","items":[{"name":"Milk","quantity":1,"unit_price":56,"line_total":56}],"total":56}')
+
+        def list(self):
+            return [T.SimpleNamespace(name="models/gemini-9.9-flash", supported_actions=["generateContent"]),
+                    T.SimpleNamespace(name="models/gemini-9.9-flash-image", supported_actions=["generateContent"])]
+
+    class Client:
+        def __init__(self, api_key=None):
+            self.models = Models()
+
+    monkeypatch.setattr(genai, "Client", Client)
+    monkeypatch.setattr(svc, "_WORKING_MODEL", None)
+    out = svc.extract_with_gemini(b"%PDF", "application/pdf", api_key="k")
+    assert out["model"] == "gemini-9.9-flash" and calls[-1] == "gemini-9.9-flash"
+    assert svc._WORKING_MODEL == "gemini-9.9-flash"
+    monkeypatch.setattr(svc, "_WORKING_MODEL", None)

@@ -23,7 +23,7 @@ from utils.session import (
     get_current_room_name,
     set_current_room,
 )
-from utils.formatting import format_currency, badge_html
+from utils.formatting import format_currency, badge_html, safe_error_message
 from components.sidebar import render_sidebar, render_room_selector
 from components.cards import render_empty_state
 from database.database import (
@@ -773,4 +773,4 @@ elif step == 4:
                     st.switch_page("pages/11_Payments.py")
             except Exception as exc:
                 st.session_state["is_submitting"] = False
-                st.error(f"❌ Failed to confirm receipt: {exc}")
+                st.error(f"❌ Failed to confirm receipt: {safe_error_message(exc)}")

@@ -258,7 +258,7 @@ st.markdown("<hr style='border-color:#CADDD8; margin:1.5rem 0 1.2rem 0;'>", unsa
 with st.expander("🗓️ Month-End Archiving & Reset Actions", expanded=False):
     st.markdown(
         "<p style='color:#4A6568; font-size:0.9rem; margin-bottom:1rem;'>"
-        "Archive this month's finalized report permanently to Supabase, "
+        "Archive this month's finalized report permanently to your history, "
         "and cleanly reset active personal expenses for the new calendar month."
         "</p>",
         unsafe_allow_html=True,
@@ -275,7 +275,7 @@ with st.expander("🗓️ Month-End Archiving & Reset Actions", expanded=False):
 
     act_col1, act_col2 = st.columns(2)
     with act_col1:
-        if st.button("💾 Save & Archive Report to Supabase", type="primary", use_container_width=True):
+        if st.button("💾 Save & Archive Report", type="primary", use_container_width=True):
             if not archive_month.strip():
                 st.error("Please enter a valid month (e.g. 2026-10).")
             else:
@@ -287,7 +287,7 @@ with st.expander("🗓️ Month-End Archiving & Reset Actions", expanded=False):
                     float(calc_saved),
                     category_summary,
                 )
-                st.success(f"✅ Month-end report for **{archive_month.strip()}** saved forever in Supabase history table!")
+                st.success(f"✅ Month-end report for **{archive_month.strip()}** saved to your report history!")
                 st.rerun()
 
     with act_col2:
@@ -304,7 +304,7 @@ with st.expander("🗓️ Month-End Archiving & Reset Actions", expanded=False):
                 <p style="margin:0 0 0.8rem 0; color:#333; font-size:0.9rem;">
                     Are you sure you want to clear active expense data for <strong>{archive_month.strip()}</strong>?
                     <br><br>
-                    • Permanently archives your <strong>{archive_month.strip()}</strong> summary to Supabase.<br>
+                    • Permanently archives your <strong>{archive_month.strip()}</strong> summary to your report history.<br>
                     • Active personal expenses will be cleared to start fresh for the new month.<br>
                     • Your configured budget limits remain intact.
                 </p>

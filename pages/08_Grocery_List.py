@@ -12,7 +12,7 @@ import streamlit as st
 
 from style import apply_base_style
 from utils.session import require_auth, get_current_user_id, get_current_room_id, get_current_room_name
-from utils.formatting import badge_html
+from utils.formatting import badge_html, safe_error_message
 from components.sidebar import render_sidebar, render_room_selector
 from components.cards import render_empty_state
 from components.alerts import permission_error
@@ -73,11 +73,11 @@ with col_sub:
         f"<p style='color:#4A6568; margin-top:-0.8rem;'>"
         f"Viewing items in: <strong>{room_name}</strong> &nbsp;"
         f"<span style='background:#EAF1EB; color:#6B8F71; border:1px solid #6B8F71; padding:3px 10px; border-radius:12px; font-size:0.78rem; font-weight:700;'>"
-        f"🟢 Supabase Live Sync</span></p>",
+        f"🟢 Live Sync</span></p>",
         unsafe_allow_html=True,
     )
 with col_sync:
-    if st.button("🔄 Live Sync", help="Fetch latest live grocery updates from Supabase"):
+    if st.button("🔄 Live Sync", help="Fetch the latest grocery updates"):
         st.rerun()
 
 st.markdown("<hr style='border:none; border-top:1px solid #CADDD8; margin:0.2rem 0 1.2rem 0;'>", unsafe_allow_html=True)
@@ -193,7 +193,7 @@ if new_item:
             st.success(f"✅ Added **{item_name_clean}** ×{new_item['quantity']}")
             st.rerun()
         except Exception as exc:
-            st.error(f"Could not add item: {exc}")
+            st.error(f"Could not add item: {safe_error_message(exc)}")
 
 st.markdown("<br>", unsafe_allow_html=True)
 

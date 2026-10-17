@@ -12,7 +12,7 @@ import streamlit as st
 
 from style import apply_base_style
 from utils.session import require_auth, get_current_user_id, get_current_room_id, get_current_room_name
-from utils.formatting import badge_html
+from utils.formatting import badge_html, safe_error_message
 from components.sidebar import render_sidebar, render_room_selector
 from components.cards import render_empty_state
 from database.database import (
@@ -71,7 +71,7 @@ with col_sub:
             <span style="color:#4A6568; font-size:1.02rem;">Shopping in: <strong style="color:#10272A;">{room_name}</strong></span>
             <span style="background:#EAF1EB; color:#2E5135; border:1px solid #6B8F71; padding:3px 10px; border-radius:12px; font-size:0.78rem; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
                 <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#6B8F71;"></span>
-                Supabase Live Sync
+                Live Sync
             </span>
         </div>
         """,
@@ -79,7 +79,7 @@ with col_sub:
     )
 with col_sync:
     st.markdown('<div style="display:flex; justify-content:flex-end; padding-right:1rem;">', unsafe_allow_html=True)
-    if st.button("🔄 Live Sync", key="shop_live_sync", help="Fetch live shopping state from Supabase"):
+    if st.button("🔄 Live Sync", key="shop_live_sync", help="Fetch the latest shopping updates"):
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
@@ -120,7 +120,7 @@ def do_mark_purchased(item_id: int, inc: int = 1):
     try:
         mark_grocery_item_purchased_live(item_id, increment=inc)
     except Exception as e:
-        st.error(f"Error updating item: {e}")
+        st.error(f"Error updating item: {safe_error_message(e)}")
     st.rerun()
 
 
@@ -139,7 +139,7 @@ def do_mark_status(item_id: int, status: str):
     try:
         update_grocery_item_status_live(item_id, status)
     except Exception as e:
-        st.error(f"Error updating status: {e}")
+        st.error(f"Error updating status: {safe_error_message(e)}")
     st.rerun()
 
 

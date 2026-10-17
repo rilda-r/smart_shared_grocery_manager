@@ -287,7 +287,7 @@ def send_account_deleted_email(email: str, full_name: str = "Valued User"):
     <div style="margin: 20px 0; padding: 16px 20px; background: #FCEAE8; border-left: 4px solid #8C1C13; border-radius: 8px;">
       <h3 style="margin: 0 0 6px 0; color: #8C1C13; font-size: 15px;">Summary of Deletion:</h3>
       <p style="margin: 0; color: #5C4A3E; font-size: 13px; line-height: 1.6;">
-        All your profile details, room memberships, personal expense tracking, and authentication credentials in Supabase have been completely removed.
+        All your profile details, room memberships, personal expense tracking, and authentication credentials have been completely removed.
       </p>
     </div>
     

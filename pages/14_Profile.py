@@ -212,7 +212,7 @@ with right_col:
             <div style="background:#FFF0EE; border:2px solid #9C4B3E; border-radius:8px; padding:1.2rem; margin-bottom:1rem;">
                 <h4 style="color:#9C4B3E; margin:0 0 0.5rem 0;">⚠️ Are you absolutely sure?</h4>
                 <p style="color:#20261F; font-size:0.92rem; margin-bottom:0.5rem;">
-                    This action CANNOT be undone. All your data in Supabase will be permanently deleted with cascading effect.
+                    This action CANNOT be undone. All your account data, room memberships, expenses and payments will be permanently deleted.
                 </p>
             </div>
             """,
