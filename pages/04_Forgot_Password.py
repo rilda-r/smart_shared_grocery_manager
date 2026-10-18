@@ -1,3 +1,4 @@
+import hmac
 import time
 import streamlit as st
 import sys, os
@@ -35,8 +36,9 @@ if "fp_step" not in st.session_state:
     st.session_state.fp_step = "email"
 if "fp_email" not in st.session_state:
     st.session_state.fp_email = ""
-if "fp_dev_otp" not in st.session_state:
-    st.session_state.fp_dev_otp = None
+if "fp_attempts" not in st.session_state:
+    st.session_state.fp_attempts = 0
+MAX_OTP_ATTEMPTS = 5
 if "fp_last_sent_ts" not in st.session_state:
     st.session_state.fp_last_sent_ts = 0
 
@@ -68,16 +70,17 @@ with mid:
                 if not user:
                     st.error("No account found with this email. Please register first.")
                 else:
-                    # If SMTP isn't configured, default to fallback OTP '123456'
-                    otp = generate_otp() if smtp_is_configured() else "123456"
-                    expiry = otp_expiry_time()
-                    set_otp(clean, otp, expiry.isoformat())
-                    
-                    if smtp_is_configured():
-                        send_otp_email(clean, otp)
+                    # No fixed/fallback codes: a reset code is only ever delivered by real email.
+                    if not smtp_is_configured():
+                        st.error("Email service is not available right now. Please try again later.")
+                        st.stop()
+
+                    otp = generate_otp()
+                    set_otp(clean, otp, otp_expiry_time().isoformat())
+                    send_otp_email(clean, otp, purpose="password_reset")
 
                     st.session_state.fp_email = clean
-                    st.session_state.fp_dev_otp = otp
+                    st.session_state.fp_attempts = 0
                     st.session_state.fp_last_sent_ts = time.time()
                     st.session_state.fp_step = "otp"
                     st.rerun()
@@ -91,10 +94,7 @@ with mid:
         st.markdown("#### Step 2 · Enter the OTP")
         st.markdown(f'<p class="groc-muted" style="font-size:0.92rem;">Sent to <b>{st.session_state.fp_email}</b>.</p>', unsafe_allow_html=True)
 
-        if not smtp_is_configured():
-            st.info(f"🛠️ Dev Mode Active (No SMTP): Use code **{st.session_state.fp_dev_otp}**", icon="ℹ️")
-
-        otp_input = st.text_input("Enter 6-digit code", max_chars=6, placeholder="______", value=st.session_state.fp_dev_otp if not smtp_is_configured() else "")
+        otp_input = st.text_input("Enter 6-digit code", max_chars=6, placeholder="______")
 
         now = time.time()
         cooldown = int(OTP_RESEND_COOLDOWN_SECONDS - (now - st.session_state.fp_last_sent_ts))
@@ -105,11 +105,13 @@ with mid:
             st.markdown('<div class="groc-secondary">', unsafe_allow_html=True)
             if st.button(f"Resend ({cooldown}s)" if cooldown > 0 else "Resend OTP",
                          disabled=cooldown > 0, key="fp_resend"):
-                new_otp = generate_otp() if smtp_is_configured() else "123456"
+                if not smtp_is_configured():
+                    st.error("Email service is not available right now. Please try again later.")
+                    st.stop()
+                new_otp = generate_otp()
                 set_otp(st.session_state.fp_email, new_otp, otp_expiry_time().isoformat())
-                if smtp_is_configured():
-                    send_otp_email(st.session_state.fp_email, new_otp)
-                st.session_state.fp_dev_otp = new_otp
+                send_otp_email(st.session_state.fp_email, new_otp, purpose="password_reset")
+                st.session_state.fp_attempts = 0
                 st.session_state.fp_last_sent_ts = time.time()
                 st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
@@ -117,24 +119,25 @@ with mid:
         st.write("")
         if st.button("Verify OTP", type="primary", use_container_width=True):
             user = get_user_by_email(st.session_state.fp_email)
-            if not user or not user.get("otp_code"):
+            if st.session_state.fp_attempts >= MAX_OTP_ATTEMPTS:
+                st.error("Too many wrong attempts. Please request a new code.")
+            elif not user or not user.get("otp_code"):
                 st.error("Invalid verification code.")
             else:
                 expiry = datetime.fromisoformat(user["otp_expires_at"])
                 if is_otp_expired(expiry):
                     st.warning("Code expired. Request a new one.")
-                elif otp_input.strip() != user["otp_code"]:
-                    st.error("Invalid verification code.")
+                elif not hmac.compare_digest(otp_input.strip(), str(user["otp_code"]).strip()):
+                    st.session_state.fp_attempts += 1
+                    left = max(MAX_OTP_ATTEMPTS - st.session_state.fp_attempts, 0)
+                    st.error(f"Invalid verification code. {left} attempt(s) left.")
                 else:
                     st.session_state.fp_step = "reset"
                     st.rerun()
 
-        # Dev bypass option
-        if not smtp_is_configured():
-            st.markdown("---")
-            if st.button("🛠️ Skip OTP Verification (Dev Mode)", use_container_width=True):
-                st.session_state.fp_step = "reset"
-                st.rerun()
+        st.markdown('<div class="forgot-link" style="margin-top:1rem;">', unsafe_allow_html=True)
+        st.page_link("pages/01_Login.py", label="← Back to Login")
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # ---- STEP 3: NEW PASSWORD ----
     elif st.session_state.fp_step == "reset":
@@ -190,7 +193,7 @@ with mid:
     # ---- STEP 4: SUCCESS ----
     elif st.session_state.fp_step == "done":
         st.success("✅ Password updated successfully!")
-        for k in ["fp_email", "fp_dev_otp", "fp_last_sent_ts"]:
+        for k in ["fp_email", "fp_attempts", "fp_last_sent_ts"]:
             st.session_state.pop(k, None)
         st.session_state.fp_step = "email"
         if st.button("Go to Login", type="primary", use_container_width=True):
