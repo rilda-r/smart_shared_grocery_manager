@@ -17,6 +17,7 @@ from security.authentication import (
     generate_otp,
     otp_expiry_time,
     is_valid_email,
+    clean_email_input,
     send_otp_email,
 )
 
@@ -48,8 +49,8 @@ st.markdown(
 _, mid, _ = st.columns([0.1, 3.8, 0.1])
 with mid:
     with st.container(border=True):
-        full_name = st.text_input("Full Name", placeholder="e.g. Ananya Rao")
-    email = st.text_input("Email Address", placeholder="you@example.com")
+        full_name = st.text_input("Full Name", placeholder="e.g. Ananya Rao", key="reg_full_name", autocomplete="name")
+    email = st.text_input("Email Address", placeholder="you@example.com", key="reg_email", autocomplete="off")
     st.markdown(
         '<p style="font-size:0.83rem; color:#8C1C13; margin-top:-0.4rem; margin-bottom:1rem; font-weight:600;">'
         '⚠️ Email address cannot be changed after account creation.'
@@ -66,6 +67,7 @@ with mid:
         type=pw_type,
         placeholder="Create a strong password",
         key="reg_password_input",
+        autocomplete="new-password",
     )
 
     confirm_password = st.text_input(
@@ -73,6 +75,7 @@ with mid:
         type=pw_type,
         placeholder="Re-enter your password",
         key="reg_confirm_password_input",
+        autocomplete="new-password",
     )
 
     # Live password strength indicator
@@ -107,12 +110,14 @@ with mid:
 # ---- ACTIONS LOGIC PROCESSING ----
 if create_clicked:
     errors = []
-    clean_email = email.strip().lower()
+    clean_email = clean_email_input(email)
     
     if not full_name.strip():
         errors.append("Please enter your full name.")
-    if not email.strip() or not is_valid_email(clean_email):
-        errors.append("Please enter a valid email address.")
+    if not clean_email:
+        errors.append("Please enter your email address.")
+    elif not is_valid_email(clean_email):
+        errors.append("That doesn't look like a valid email address. Check for typos or extra characters.")
 
     if not password:
         errors.append("Please create a password.")

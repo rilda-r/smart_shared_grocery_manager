@@ -14,7 +14,7 @@ from database.database import (
 from security.password_hash import hash_password, password_strength
 from security.authentication import (
     generate_otp, otp_expiry_time, is_otp_expired,
-    send_otp_email, smtp_is_configured, is_valid_email,
+    send_otp_email, smtp_is_configured, is_valid_email, clean_email_input,
     OTP_RESEND_COOLDOWN_SECONDS,
 )
 
@@ -62,9 +62,11 @@ with mid:
         email_input = st.text_input("Email Address", placeholder="you@example.com")
         
         if st.button("Send OTP", type="primary", use_container_width=True):
-            clean = email_input.strip().lower()
-            if not is_valid_email(clean):
-                st.error("Please enter a valid email address.")
+            clean = clean_email_input(email_input)
+            if not clean:
+                st.error("Please enter your email address.")
+            elif not is_valid_email(clean):
+                st.error("That doesn't look like a valid email address. Check for typos or extra characters.")
             else:
                 user = get_user_by_email(clean)
                 if not user:

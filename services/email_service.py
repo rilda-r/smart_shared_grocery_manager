@@ -100,22 +100,39 @@ def _send_raw_smtp(to_email: str, subject: str, html_content: str, text_content:
         if html_content:
             msg.attach(MIMEText(html_content, "html", "utf-8"))
 
-        # Connect according to port (SSL vs STARTTLS)
-        if cfg["port"] == 465:
-            server = smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=12)
-        else:
-            server = smtplib.SMTP(cfg["host"], cfg["port"], timeout=12)
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
-
-        server.login(cfg["user"], cfg["password"])
-        server.sendmail(cfg["sender"], [to_email], msg.as_string())
-        server.quit()
-        print(f"[SMTP SUCCESS] Successfully delivered '{subject}' to {to_email}")
-        return True
+        # Try the configured port first; if Gmail's 587 (STARTTLS) is blocked/closed, retry on 465 (SSL).
+        import ssl
+        ctx = ssl.create_default_context()
+        ports = [cfg["port"]] + ([465] if cfg["port"] == 587 else [])
+        last_exc = None
+        for port in ports:
+            try:
+                if port == 465:
+                    server = smtplib.SMTP_SSL(cfg["host"], port, timeout=30, context=ctx)
+                else:
+                    server = smtplib.SMTP(cfg["host"], port, timeout=30)
+                    server.ehlo()
+                    server.starttls(context=ctx)
+                    server.ehlo()
+                server.login(cfg["user"], cfg["password"])
+                server.sendmail(cfg["sender"], [to_email], msg.as_string())
+                server.quit()
+                print(f"[SMTP SUCCESS] Delivered '{subject}' to {to_email} via port {port}")
+                return True
+            except smtplib.SMTPAuthenticationError as exc:
+                print(f"[SMTP ERROR] Login rejected (wrong App Password or 2-step verification off): {exc}")
+                return False
+            except Exception as exc:  # noqa: BLE001
+                last_exc = exc
+                print(f"[SMTP ERROR] Port {port} failed: {type(exc).__name__}: {exc}")
+        print(
+            f"[SMTP ERROR] Could not send to {to_email} via {cfg['host']}. "
+            f"Likely a network/antivirus block: try a phone hotspot, turn off antivirus email scanning, or turn off VPN. "
+            f"Last error: {last_exc}"
+        )
+        return False
     except Exception as exc:
-        print(f"[SMTP ERROR] Failed sending email to {to_email} via {cfg['host']}:{cfg['port']} -> {exc}")
+        print(f"[SMTP ERROR] Failed building email to {to_email} -> {exc}")
         return False
 
 
