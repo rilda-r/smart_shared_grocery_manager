@@ -53,8 +53,8 @@ render_sidebar()
 user_id = get_current_user_id()
 
 st.markdown("# 🎯 Budget Manager")
-st.markdown("<p style='color:#5C4A3E; margin-top:-0.8rem;'>Set monthly category limits, monitor active utilization, and inspect visual month-end analytics on a single screen.</p>", unsafe_allow_html=True)
-st.markdown("<hr style='border-color:#E3D6BE; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
+st.markdown("<p style='color:#4A6568; margin-top:-0.8rem;'>Set monthly category limits, monitor active utilization, and inspect visual month-end analytics on a single screen.</p>", unsafe_allow_html=True)
+st.markdown("<hr style='border-color:#CADDD8; margin:0.5rem 0 1.5rem 0;'>", unsafe_allow_html=True)
 
 
 # ── Data Loading from Database ────────────────────────────────────────────────
@@ -149,7 +149,7 @@ ms3.metric(
 )
 ms4.metric("Savings Efficiency", f"{calc_rate:.1f}%")
 
-st.markdown("<hr style='border-color:#E3D6BE; margin:1.2rem 0 1.5rem 0;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border-color:#CADDD8; margin:1.2rem 0 1.5rem 0;'>", unsafe_allow_html=True)
 
 # ── Main Consolidated Dashboard Grid ──────────────────────────────────────────
 left_col, right_col = st.columns([1.15, 1], gap="large")
@@ -252,13 +252,13 @@ with right_col:
         render_empty_state("📊", "No Utilization Data", "Configure budget limits to view utilization bars.")
 
 st.markdown("<br>", unsafe_allow_html=True)
-st.markdown("<hr style='border-color:#E3D6BE; margin:1.5rem 0 1.2rem 0;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border-color:#CADDD8; margin:1.5rem 0 1.2rem 0;'>", unsafe_allow_html=True)
 
 # ── Archiving & Month-End Actions (Preserved Calculation & State Handlers) ───────
 with st.expander("🗓️ Month-End Archiving & Reset Actions", expanded=False):
     st.markdown(
-        "<p style='color:#5C4A3E; font-size:0.9rem; margin-bottom:1rem;'>"
-        "Archive this month's finalized report permanently to Supabase, "
+        "<p style='color:#4A6568; font-size:0.9rem; margin-bottom:1rem;'>"
+        "Archive this month's finalized report permanently to your history, "
         "and cleanly reset active personal expenses for the new calendar month."
         "</p>",
         unsafe_allow_html=True,
@@ -275,7 +275,7 @@ with st.expander("🗓️ Month-End Archiving & Reset Actions", expanded=False):
 
     act_col1, act_col2 = st.columns(2)
     with act_col1:
-        if st.button("💾 Save & Archive Report to Supabase", type="primary", use_container_width=True):
+        if st.button("💾 Save & Archive Report", type="primary", use_container_width=True):
             if not archive_month.strip():
                 st.error("Please enter a valid month (e.g. 2026-10).")
             else:
@@ -287,7 +287,7 @@ with st.expander("🗓️ Month-End Archiving & Reset Actions", expanded=False):
                     float(calc_saved),
                     category_summary,
                 )
-                st.success(f"✅ Month-end report for **{archive_month.strip()}** saved forever in Supabase history table!")
+                st.success(f"✅ Month-end report for **{archive_month.strip()}** saved to your report history!")
                 st.rerun()
 
     with act_col2:
@@ -304,7 +304,7 @@ with st.expander("🗓️ Month-End Archiving & Reset Actions", expanded=False):
                 <p style="margin:0 0 0.8rem 0; color:#333; font-size:0.9rem;">
                     Are you sure you want to clear active expense data for <strong>{archive_month.strip()}</strong>?
                     <br><br>
-                    • Permanently archives your <strong>{archive_month.strip()}</strong> summary to Supabase.<br>
+                    • Permanently archives your <strong>{archive_month.strip()}</strong> summary to your report history.<br>
                     • Active personal expenses will be cleared to start fresh for the new month.<br>
                     • Your configured budget limits remain intact.
                 </p>

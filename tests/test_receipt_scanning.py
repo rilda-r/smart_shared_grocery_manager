@@ -359,3 +359,54 @@ def test_end_to_end_match_and_per_item_split_fresh_basket():
     assert rows["Milk (1 L)"]["gst_amt"] == Decimal("0.00")
     assert abs(rows["Cake"]["final_row_amount"] - Decimal("504.45")) <= Decimal("0.10")
     assert sum(x["final_row_amount"] for x in r["allocated_rows"]) == Decimal("1137.00")
+
+# ── Items bought 1/1 on the Shopping page must still match their requester ──
+
+def test_fully_purchased_item_still_matches_requester():
+    from datetime import datetime, timedelta
+    from services.item_matching_service import select_matchable_grocery_items
+    now = datetime(2026, 10, 16, 18, 0, 0)
+    recent = str(now - timedelta(hours=2))
+    old = str(now - timedelta(days=10))
+    items = [
+        {"id": 1, "itemName": "Milk", "quantity": 1, "userId": 2, "status": "purchased", "updatedAt": recent},
+        {"id": 2, "itemName": "Cake", "quantity": 1, "userId": 3, "status": "pending", "updatedAt": recent},
+        {"id": 3, "itemName": "Rice", "quantity": 1, "userId": 2, "status": "purchased", "updatedAt": old},      # too old
+        {"id": 4, "itemName": "Eggs", "quantity": 1, "userId": 2, "status": "purchased", "updatedAt": recent},   # already billed
+    ]
+    pool = select_matchable_grocery_items(items, billed_item_ids={4}, now=now)
+    assert [g["id"] for g in pool] == [2, 1]  # pending first, then recent unbilled purchase
+    members = [{"user_id": 1, "display_name": "Shopper"}, {"user_id": 2, "display_name": "Rilda"}, {"user_id": 3, "display_name": "Tej"}]
+    receipt = [{"name": "Milk (1 L)", "quantity": 1, "unit_price": 56, "line_total": 56}]
+    m = match_receipt_items(receipt, pool, members, shopper_user_id=1)
+    assert m["extra_items"] == []
+    assert m["matched_items"][0]["assignments"][0]["user_id"] == 2
+
+def test_gemini_retired_models_fall_back_to_discovered_model(monkeypatch):
+    import types as T
+    pytest = __import__("pytest")
+    genai = pytest.importorskip("google.genai")
+    import services.receipt_ocr_service as svc
+    calls = []
+
+    class Models:
+        def generate_content(self, model, **k):
+            calls.append(model)
+            if model != "gemini-9.9-flash":
+                raise Exception("404 NOT_FOUND model is no longer available")
+            return T.SimpleNamespace(text='{"store":"S","items":[{"name":"Milk","quantity":1,"unit_price":56,"line_total":56}],"total":56}')
+
+        def list(self):
+            return [T.SimpleNamespace(name="models/gemini-9.9-flash", supported_actions=["generateContent"]),
+                    T.SimpleNamespace(name="models/gemini-9.9-flash-image", supported_actions=["generateContent"])]
+
+    class Client:
+        def __init__(self, api_key=None):
+            self.models = Models()
+
+    monkeypatch.setattr(genai, "Client", Client)
+    monkeypatch.setattr(svc, "_WORKING_MODEL", None)
+    out = svc.extract_with_gemini(b"%PDF", "application/pdf", api_key="k")
+    assert out["model"] == "gemini-9.9-flash" and calls[-1] == "gemini-9.9-flash"
+    assert svc._WORKING_MODEL == "gemini-9.9-flash"
+    monkeypatch.setattr(svc, "_WORKING_MODEL", None)

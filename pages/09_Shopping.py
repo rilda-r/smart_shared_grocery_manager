@@ -12,7 +12,7 @@ import streamlit as st
 
 from style import apply_base_style
 from utils.session import require_auth, get_current_user_id, get_current_room_id, get_current_room_name
-from utils.formatting import badge_html
+from utils.formatting import badge_html, safe_error_message
 from components.sidebar import render_sidebar, render_room_selector
 from components.cards import render_empty_state
 from database.database import (
@@ -59,7 +59,7 @@ if not room_id:
 # ── Live Sync Header Frame ───────────────────────────────────────────────────
 st.markdown(
     """
-    <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:16px; padding:0.65rem 1rem; margin-bottom:1.2rem; box-shadow:0 2px 10px rgba(59,42,32,0.04);">
+    <div style="background:#F7FBFA; border:1px solid #CADDD8; border-radius:16px; padding:0.65rem 1rem; margin-bottom:1.2rem; box-shadow:0 2px 10px rgba(16,39,42,0.04);">
     """,
     unsafe_allow_html=True,
 )
@@ -68,10 +68,10 @@ with col_sub:
     st.markdown(
         f"""
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-            <span style="color:#5C4A3E; font-size:1.02rem;">Shopping in: <strong style="color:#2A1D16;">{room_name}</strong></span>
+            <span style="color:#4A6568; font-size:1.02rem;">Shopping in: <strong style="color:#10272A;">{room_name}</strong></span>
             <span style="background:#EAF1EB; color:#2E5135; border:1px solid #6B8F71; padding:3px 10px; border-radius:12px; font-size:0.78rem; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
                 <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#6B8F71;"></span>
-                Supabase Live Sync
+                Live Sync
             </span>
         </div>
         """,
@@ -79,7 +79,7 @@ with col_sub:
     )
 with col_sync:
     st.markdown('<div style="display:flex; justify-content:flex-end; padding-right:1rem;">', unsafe_allow_html=True)
-    if st.button("🔄 Live Sync", key="shop_live_sync", help="Fetch live shopping state from Supabase"):
+    if st.button("🔄 Live Sync", key="shop_live_sync", help="Fetch the latest shopping updates"):
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
@@ -120,7 +120,7 @@ def do_mark_purchased(item_id: int, inc: int = 1):
     try:
         mark_grocery_item_purchased_live(item_id, increment=inc)
     except Exception as e:
-        st.error(f"Error updating item: {e}")
+        st.error(f"Error updating item: {safe_error_message(e)}")
     st.rerun()
 
 
@@ -139,7 +139,7 @@ def do_mark_status(item_id: int, status: str):
     try:
         update_grocery_item_status_live(item_id, status)
     except Exception as e:
-        st.error(f"Error updating status: {e}")
+        st.error(f"Error updating status: {safe_error_message(e)}")
     st.rerun()
 
 
@@ -163,17 +163,17 @@ else:
                 # Compact Item Card
                 st.markdown(
                     f"""
-                    <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-left:3.5px solid #7A1F2B;
+                    <div style="background:#F7FBFA; border:1px solid #CADDD8; border-left:3.5px solid #0F766E;
                                 border-radius:12px; padding:0.5rem 0.8rem; margin-bottom:0.25rem;
-                                box-shadow:0 2px 8px -2px rgba(59, 42, 32, 0.05);">
+                                box-shadow:0 2px 8px -2px rgba(16, 39, 42, 0.05);">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div style="display:flex; align-items:center; gap:0.4rem; overflow:hidden;">
-                                <span style="font-size:0.95rem; font-weight:700; color:#2A1D16; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">🛒 {item['itemName']}</span>
-                                <span style='font-size:0.7rem; color:#5C4A3E; background:#F7F2E8; border:1px solid #E3D6BE; padding:1px 6px; border-radius:10px; font-weight:600; white-space:nowrap;'>👤 {added_by}</span>
+                                <span style="font-size:0.95rem; font-weight:700; color:#10272A; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">🛒 {item['itemName']}</span>
+                                <span style='font-size:0.7rem; color:#4A6568; background:#F5FAF8; border:1px solid #CADDD8; padding:1px 6px; border-radius:10px; font-weight:600; white-space:nowrap;'>👤 {added_by}</span>
                             </div>
                             <div style="display:flex; align-items:center; gap:0.45rem; flex-shrink:0;">
                                 <span style="font-size:0.72rem; color:#6B8F71; font-weight:600;">{purchased_qty}/{total_qty}</span>
-                                <span style="font-family:'Fraunces',Georgia,serif; font-size:1.15rem; font-weight:800; color:#7A1F2B;">×{remaining_qty}</span>
+                                <span style="font-family:'Fraunces',Georgia,serif; font-size:1.15rem; font-weight:800; color:#0F766E;">×{remaining_qty}</span>
                             </div>
                         </div>
                     </div>
@@ -210,11 +210,11 @@ if purchased_items:
                 # Compact Purchased Card
                 st.markdown(
                     f"""
-                    <div style="background:#FAF6F0; border:1px solid rgba(163, 150, 112, 0.35); border-left:3.5px solid #6B8F71;
+                    <div style="background:#F4F9F8; border:1px solid rgba(163, 150, 112, 0.35); border-left:3.5px solid #6B8F71;
                                 border-radius:12px; padding:0.5rem 0.8rem; margin-bottom:0.25rem;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div style="display:flex; align-items:center; gap:0.4rem; overflow:hidden;">
-                                <span style="font-size:0.95rem; font-weight:600; color:#6B5A47; text-decoration:line-through; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">✅ {item['itemName']}</span>
+                                <span style="font-size:0.95rem; font-weight:600; color:#5A7679; text-decoration:line-through; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">✅ {item['itemName']}</span>
                                 <span style='font-size:0.7rem; color:#4D4828; background:#FFFFFF; border:1px solid #A39670; padding:1px 6px; border-radius:10px; white-space:nowrap;'>👤 {added_by}</span>
                             </div>
                             <div style="display:flex; align-items:center; gap:0.45rem; flex-shrink:0;">
@@ -249,12 +249,12 @@ if unavailable_items:
                 added_by = item.get("addedByName") or item.get("added_by_name") or "Member"
                 st.markdown(
                     f"""
-                    <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-left:3.5px solid #8C1C13;
-                                border-radius:12px; padding:0.5rem 0.8rem; margin-bottom:0.25rem; box-shadow:0 2px 8px -2px rgba(59, 42, 32, 0.05);">
+                    <div style="background:#F7FBFA; border:1px solid #CADDD8; border-left:3.5px solid #8C1C13;
+                                border-radius:12px; padding:0.5rem 0.8rem; margin-bottom:0.25rem; box-shadow:0 2px 8px -2px rgba(16, 39, 42, 0.05);">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div style="display:flex; align-items:center; gap:0.4rem; overflow:hidden;">
                                 <span style="font-size:0.95rem; font-weight:600; color:#8C1C13; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">❌ {item['itemName']}</span>
-                                <span style='font-size:0.7rem; color:#5C4A3E; background:#F7F2E8; border:1px solid #E3D6BE; padding:1px 6px; border-radius:10px; white-space:nowrap;'>👤 {added_by}</span>
+                                <span style='font-size:0.7rem; color:#4A6568; background:#F5FAF8; border:1px solid #CADDD8; padding:1px 6px; border-radius:10px; white-space:nowrap;'>👤 {added_by}</span>
                             </div>
                             <span style="font-family:'Fraunces',Georgia,serif; font-size:1.15rem; font-weight:700; color:#8C1C13;">×{item['quantity']}</span>
                         </div>

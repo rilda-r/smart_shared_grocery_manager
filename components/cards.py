@@ -31,12 +31,12 @@ _CARD_CSS = """
     }
 }
 .metric-card {
-    background: #FBF6EC;
-    border: 1px solid #E3D6BE;
-    border-top: 4px solid #7A1F2B;
+    background: #F7FBFA;
+    border: 1px solid #CADDD8;
+    border-top: 4px solid #0F766E;
     border-radius: 18px;
     padding: 1.15rem 1rem;
-    box-shadow: 0 4px 20px -2px rgba(59, 42, 32, 0.08);
+    box-shadow: 0 4px 20px -2px rgba(16, 39, 42, 0.08);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -47,21 +47,21 @@ _CARD_CSS = """
 }
 .metric-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px -4px rgba(59, 42, 32, 0.12);
+    box-shadow: 0 8px 30px -4px rgba(16, 39, 42, 0.12);
 }
 .metric-card .mc-label {
     font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #C8963E;
+    color: #9A6A12;
     margin-bottom: 0.35rem;
 }
 .metric-card .mc-value {
     font-family: 'Fraunces', Georgia, serif;
     font-size: clamp(1.25rem, 1.6vw, 1.65rem);
     font-weight: 700;
-    color: #7A1F2B;
+    color: #0F766E;
     line-height: 1.15;
     letter-spacing: -0.01em;
     font-variant-numeric: tabular-nums;
@@ -71,7 +71,7 @@ _CARD_CSS = """
 }
 .metric-card .mc-sub {
     font-size: 0.76rem;
-    color: #5C4A3E;
+    color: #4A6568;
     margin-top: 0.35rem;
 }
 .metric-card.metric-card-accent {
@@ -130,12 +130,12 @@ def render_info_card(icon: str, title: str, body: str):
     """Render an informational panel card."""
     st.markdown(
         f"""
-        <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:18px;
-                    padding:1.4rem; box-shadow:0 4px 20px -2px rgba(59, 42, 32, 0.08);">
+        <div style="background:#F7FBFA; border:1px solid #CADDD8; border-radius:18px;
+                    padding:1.4rem; box-shadow:0 4px 20px -2px rgba(16, 39, 42, 0.08);">
             <div style="font-size:1.6rem; margin-bottom:0.4rem;">{icon}</div>
-            <div style="font-family:'Fraunces',Georgia,serif; font-weight:700; color:#7A1F2B;
+            <div style="font-family:'Fraunces',Georgia,serif; font-weight:700; color:#0F766E;
                         font-size:1.05rem; margin-bottom:0.3rem;">{title}</div>
-            <div style="font-size:0.9rem; color:#2A1D16; line-height:1.5;">{body}</div>
+            <div style="font-size:0.9rem; color:#10272A; line-height:1.5;">{body}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -146,11 +146,11 @@ def render_empty_state(icon: str, message: str, sub: str = ""):
     """Render a friendly empty-state block."""
     st.markdown(
         f"""
-        <div style="background:#FFFDF9; border:1.5px dashed #E3D6BE; border-radius:18px;
-                    text-align:center; padding:2.8rem 1.2rem; color:#5C4A3E; box-shadow:0 2px 8px rgba(59,42,32,0.03);">
+        <div style="background:#FFFFFF; border:1.5px dashed #CADDD8; border-radius:18px;
+                    text-align:center; padding:2.8rem 1.2rem; color:#4A6568; box-shadow:0 2px 8px rgba(16,39,42,0.03);">
             <div style="font-size:2.8rem; margin-bottom:0.6rem;">{icon}</div>
-            <div style="font-family:'Fraunces',Georgia,serif; font-size:1.15rem; font-weight:700; color:#2A1D16;">{message}</div>
-            {"" if not sub else f'<div style="font-size:0.88rem; color:#5C4A3E; margin-top:0.35rem;">{sub}</div>'}
+            <div style="font-family:'Fraunces',Georgia,serif; font-size:1.15rem; font-weight:700; color:#10272A;">{message}</div>
+            {"" if not sub else f'<div style="font-size:0.88rem; color:#4A6568; margin-top:0.35rem;">{sub}</div>'}
         </div>
         """,
         unsafe_allow_html=True,

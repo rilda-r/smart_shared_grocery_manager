@@ -17,6 +17,7 @@ from security.authentication import (
     generate_otp,
     otp_expiry_time,
     is_valid_email,
+    clean_email_input,
     send_otp_email,
 )
 
@@ -48,8 +49,8 @@ st.markdown(
 _, mid, _ = st.columns([0.1, 3.8, 0.1])
 with mid:
     with st.container(border=True):
-        full_name = st.text_input("Full Name", placeholder="e.g. Ananya Rao")
-    email = st.text_input("Email Address", placeholder="you@example.com")
+        full_name = st.text_input("Full Name", placeholder="e.g. Ananya Rao", key="reg_full_name", autocomplete="name")
+    email = st.text_input("Email Address", placeholder="you@example.com", key="reg_email", autocomplete="off")
     st.markdown(
         '<p style="font-size:0.83rem; color:#8C1C13; margin-top:-0.4rem; margin-bottom:1rem; font-weight:600;">'
         '⚠️ Email address cannot be changed after account creation.'
@@ -66,6 +67,7 @@ with mid:
         type=pw_type,
         placeholder="Create a strong password",
         key="reg_password_input",
+        autocomplete="new-password",
     )
 
     confirm_password = st.text_input(
@@ -73,12 +75,13 @@ with mid:
         type=pw_type,
         placeholder="Re-enter your password",
         key="reg_confirm_password_input",
+        autocomplete="new-password",
     )
 
     # Live password strength indicator
     if password:
         checks = password_strength(password)
-        st.markdown('<p style="font-size:0.95rem; font-weight:700; margin-top:0.8rem; color:#2A1D16;">Password requirements</p>', unsafe_allow_html=True)
+        st.markdown('<p style="font-size:0.95rem; font-weight:700; margin-top:0.8rem; color:#10272A;">Password requirements</p>', unsafe_allow_html=True)
         labels = {
             "length": "At least 8 characters",
             "uppercase": "Uppercase letter",
@@ -99,7 +102,7 @@ with mid:
 
     st.write("")
     create_clicked = st.button("Create Account", type="primary", use_container_width=True)
-    st.markdown("<p style='text-align:center; margin-top:1rem; font-size:0.92rem; color:#2A1D16; font-weight:500;'>Already have an account?</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; margin-top:1rem; font-size:0.92rem; color:#10272A; font-weight:500;'>Already have an account?</p>", unsafe_allow_html=True)
     st.markdown('<div style="text-align:center;">', unsafe_allow_html=True)
     st.page_link("pages/01_Login.py", label="Login to your account")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -107,12 +110,14 @@ with mid:
 # ---- ACTIONS LOGIC PROCESSING ----
 if create_clicked:
     errors = []
-    clean_email = email.strip().lower()
+    clean_email = clean_email_input(email)
     
     if not full_name.strip():
         errors.append("Please enter your full name.")
-    if not email.strip() or not is_valid_email(clean_email):
-        errors.append("Please enter a valid email address.")
+    if not clean_email:
+        errors.append("Please enter your email address.")
+    elif not is_valid_email(clean_email):
+        errors.append("That doesn't look like a valid email address. Check for typos or extra characters.")
 
     if not password:
         errors.append("Please create a password.")

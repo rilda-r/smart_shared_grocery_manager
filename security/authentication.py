@@ -7,6 +7,7 @@ Integrates with services.email_service for live SMTP delivery and event triggers
 
 import os
 import re
+import unicodedata
 from datetime import datetime, timedelta
 
 from services.email_service import (
@@ -19,6 +20,13 @@ from services.email_service import (
 # Cooldown and Expiry settings
 OTP_RESEND_COOLDOWN_SECONDS = 60
 OTP_EXPIRY_MINUTES = 10
+
+
+def clean_email_input(raw: str) -> str:
+    """Remove invisible characters, brackets/quotes and whitespace; lowercase."""
+    s = unicodedata.normalize("NFKC", raw or "")
+    s = "".join(ch for ch in s if unicodedata.category(ch) not in ("Cf", "Cc"))
+    return s.strip().strip("<>\"' ,;").lower()
 
 
 def is_valid_email(email: str) -> bool:

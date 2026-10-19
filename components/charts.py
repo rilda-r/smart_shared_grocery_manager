@@ -17,37 +17,37 @@ import streamlit as st
 from collections import defaultdict
 
 # GrocEase "Shared Kitchen Counter" Palette
-BURGUNDY       = "#7A1F2B"  # Primary highlights, spendings & titles
+BURGUNDY       = "#0F766E"  # Primary highlights, spendings & titles
 SAGE           = "#6B8F71"  # Success, saved amounts, healthy states
-OCHRE          = "#C8963E"  # Warnings, limits, pending states
+OCHRE          = "#E3A02E"  # Warnings, limits, pending states
 OXBLOOD        = "#8C1C13"  # Over budget, debts, errors
-DEEP_CHOCOLATE = "#2A1D16"  # Text & labels
-CHOCOLATE      = "#3B2A20"  # Dark accent
-CREAM          = "#FBF6EC"  # Chart background
-CREAM_BORDER   = "#E3D6BE"  # Chart border & spines
-SAND           = "#F3EBDD"  # Canvas background
+DEEP_CHOCOLATE = "#10272A"  # Text & labels
+CHOCOLATE      = "#0E3B3A"  # Dark accent
+CREAM          = "#F7FBFA"  # Chart background
+CREAM_BORDER   = "#CADDD8"  # Chart border & spines
+SAND           = "#EEF5F3"  # Canvas background
 
 # Canonical category color tokens for GrocEase
 CATEGORY_COLOR_MAP = {
-    "Food": "#7A1F2B",          # Signature Burgundy
+    "Food": "#0F766E",          # Signature Burgundy
     "Transport": "#6B8F71",     # Sage Green
-    "Entertainment": "#C8963E", # Warm Amber / Ochre
+    "Entertainment": "#E3A02E", # Warm Amber / Ochre
     "Utilities": "#3A6073",     # Deep Slate Blue
     "Healthcare": "#8C1C13",    # Crimson Oxblood
     "Shopping": "#A36B4F",      # Warm Terracotta
-    "Other": "#5C4A3E",         # Deep Earth Chocolate
+    "Other": "#4A6568",         # Deep Earth Chocolate
 }
 
 FALLBACK_PALETTE = [
-    "#7A1F2B", "#6B8F71", "#C8963E", "#3A6073", "#8C1C13",
-    "#A36B4F", "#5C4A3E", "#6F7A3A", "#9E2A38", "#4A5859",
+    "#0F766E", "#6B8F71", "#E3A02E", "#3A6073", "#8C1C13",
+    "#A36B4F", "#4A6568", "#6F7A3A", "#14938A", "#4A5859",
 ]
 
 
 def get_category_color(category: str) -> str:
     """Return a strictly deterministic color token for any given expense category."""
     if not category:
-        return "#5C4A3E"
+        return "#4A6568"
     clean_cat = category.strip()
     if clean_cat in CATEGORY_COLOR_MAP:
         return CATEGORY_COLOR_MAP[clean_cat]
@@ -97,7 +97,7 @@ def render_category_pie_chart(expenses: list):
     )
     for at in autotexts:
         at.set_fontsize(9)
-        at.set_color("#FFFDF9")
+        at.set_color("#FFFFFF")
         at.set_fontweight("bold")
 
     ax.legend(

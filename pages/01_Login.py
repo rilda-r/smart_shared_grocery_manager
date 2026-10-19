@@ -79,7 +79,7 @@ with right:
         st.write(" ")
         footer_col1, footer_col2 = st.columns([1, 1], vertical_alignment="center")
         with footer_col1:
-            st.markdown('<p style="text-align:right; margin:0; font-size:0.95rem; color:#2A1D16; font-weight:500;">New here?</p>', unsafe_allow_html=True)
+            st.markdown('<p style="text-align:right; margin:0; font-size:0.95rem; color:#10272A; font-weight:500;">New here?</p>', unsafe_allow_html=True)
         with footer_col2:
             st.page_link("pages/02_Create_Account.py", label="Create Account")
 

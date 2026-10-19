@@ -112,7 +112,38 @@ SYSTEM_PROMPT = (
     "Use 0 for missing numeric fields. Return valid JSON only, no prose."
 )
 
-GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"]
+# gemini-2.0-flash (shut down 1 Jun 2026) and gemini-2.5-flash (16 Oct 2026) are retired.
+# Override with GEMINI_MODEL in .env / secrets. If every listed model is gone, the newest available
+# flash model is discovered at runtime via client.models.list().
+GEMINI_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.8-flash"]
+_WORKING_MODEL: Optional[str] = None
+
+
+def _discover_flash_models(client) -> List[str]:
+    """Newest-first list of usable text 'flash' models from the live model list."""
+    found = []
+    for m in client.models.list():
+        name = (getattr(m, "name", "") or "").replace("models/", "")
+        actions = getattr(m, "supported_actions", None) or []
+        if "flash" not in name or (actions and "generateContent" not in actions):
+            continue
+        if any(bad in name for bad in ("image", "tts", "live", "audio", "embedding", "omni", "preview", "lite", "thinking")):
+            continue
+        ver = tuple(int(x) for x in re.findall(r"\d+", name)[:2]) or (0,)
+        found.append((ver, name))
+    return [n for _, n in sorted(found, reverse=True)]
+
+
+def _cfg_model() -> str:
+    """Optional model override: GEMINI_MODEL in env or Streamlit secrets."""
+    val = os.environ.get("GEMINI_MODEL", "").strip()
+    if not val:
+        try:
+            import streamlit as st
+            val = str(st.secrets.get("GEMINI_MODEL", "")).strip()
+        except Exception:
+            val = ""
+    return val
 
 
 def _is_retryable(exc: Exception) -> bool:
@@ -152,8 +183,16 @@ def extract_with_gemini(
     if feedback:
         user_prompt += f" Your previous attempt failed this check: {feedback} Re-read the receipt carefully and correct it."
 
+    global _WORKING_MODEL
+    errors: List[str] = []
+    candidates = [m for m in [_WORKING_MODEL, _cfg_model()] + GEMINI_MODELS if m]
+    candidates = list(dict.fromkeys(candidates))
+    tried_discovery = False
     last_err: Optional[Exception] = None
-    for model_name in GEMINI_MODELS:
+    idx = 0
+    while idx < len(candidates):
+        model_name = candidates[idx]
+        idx += 1
         for attempt in range(3):
             try:
                 response = client.models.generate_content(
@@ -172,17 +211,31 @@ def extract_with_gemini(
                 parsed = ExtractedReceipt.model_validate_json(raw_text)
                 data = _standardize_extraction(parsed)
                 data["model"] = model_name
+                _WORKING_MODEL = model_name
                 return data
             except Exception as exc:  # noqa: BLE001
                 last_err = exc
                 logger.warning("Gemini %s attempt %d failed: %s: %s", model_name, attempt + 1, type(exc).__name__, exc)
                 if _is_model_missing(exc):
+                    if model_name == _WORKING_MODEL:
+                        _WORKING_MODEL = None
+                    errors.append(f"{model_name}: model not available")
                     break  # try next model
                 if _is_retryable(exc) and attempt < 2:
                     time.sleep(2 ** attempt)
                     continue
+                errors.append(f"{model_name}: {type(exc).__name__}: {str(exc)[:200]}")
                 break
-    raise ValueError(f"{type(last_err).__name__}: {last_err}")
+        # every known model is gone -> ask the API which flash models exist right now (once)
+        if idx >= len(candidates) and not tried_discovery:
+            tried_discovery = True
+            try:
+                for name in _discover_flash_models(client):
+                    if name not in candidates:
+                        candidates.append(name)
+            except Exception as exc:  # noqa: BLE001
+                errors.append(f"model discovery failed: {type(exc).__name__}: {str(exc)[:150]}")
+    raise ValueError("; ".join(errors) or f"{type(last_err).__name__}: {last_err}")
 
 
 # ── Text-based fallback (PDF text layer / Tesseract) ──────────────────────────

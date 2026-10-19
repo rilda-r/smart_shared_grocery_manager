@@ -82,8 +82,8 @@ if not room_id:
 
 st.markdown(
     f"""
-    <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:14px; padding:0.6rem 1rem; margin-bottom:1.2rem;">
-        <span style="color:#5C4A3E; font-size:0.95rem;">Active Room: <strong style="color:#2A1D16;">{room_name}</strong></span>
+    <div style="background:#F7FBFA; border:1px solid #CADDD8; border-radius:14px; padding:0.6rem 1rem; margin-bottom:1.2rem;">
+        <span style="color:#4A6568; font-size:0.95rem;">Active Room: <strong style="color:#10272A;">{room_name}</strong></span>
     </div>
     """,
     unsafe_allow_html=True,
@@ -97,10 +97,10 @@ if split_bill_id:
         st.markdown("### 🧾 Expense Split Preview")
         st.markdown(
             f"""
-            <div style="background:#FBF6EC; border:1px solid #E3D6BE; border-radius:18px;
-                        padding:1rem 1.4rem; margin-bottom:1rem; box-shadow:0 4px 20px -2px rgba(59,42,32,0.08);">
+            <div style="background:#F7FBFA; border:1px solid #CADDD8; border-radius:18px;
+                        padding:1rem 1.4rem; margin-bottom:1rem; box-shadow:0 4px 20px -2px rgba(16,39,42,0.08);">
                 <strong>{bill['fileName']}</strong> — Total:
-                <span style="font-family:'Fraunces',serif; font-weight:700; color:#7A1F2B;">
+                <span style="font-family:'Fraunces',serif; font-weight:700; color:#0F766E;">
                     {format_currency(bill['totalAmount'])}
                 </span>
             </div>
@@ -117,9 +117,9 @@ if split_bill_id:
                     st.markdown(
                         f"""
                         <div style="display:flex; justify-content:space-between;
-                                    padding:0.6rem 0.8rem; border-bottom:1px solid #E3D6BE;">
+                                    padding:0.6rem 0.8rem; border-bottom:1px solid #CADDD8;">
                             <div>👤 {get_username(uid)}</div>
-                            <div style="font-weight:700; color:#7A1F2B; font-variant-numeric:tabular-nums;">{format_currency(amt)}</div>
+                            <div style="font-weight:700; color:#0F766E; font-variant-numeric:tabular-nums;">{format_currency(amt)}</div>
                         </div>
                         """,
                         unsafe_allow_html=True,
@@ -134,9 +134,9 @@ if split_bill_id:
                 st.markdown(
                     f"""
                     <div style="display:flex; justify-content:space-between;
-                                padding:0.6rem 0.8rem; border-bottom:1px solid #E3D6BE;">
+                                padding:0.6rem 0.8rem; border-bottom:1px solid #CADDD8;">
                         <div>👤 {get_username(uid)}</div>
-                        <div style="font-weight:700; color:#7A1F2B; font-variant-numeric:tabular-nums;">{format_currency(amt)}</div>
+                        <div style="font-weight:700; color:#0F766E; font-variant-numeric:tabular-nums;">{format_currency(amt)}</div>
                     </div>
                     """,
                     unsafe_allow_html=True,
